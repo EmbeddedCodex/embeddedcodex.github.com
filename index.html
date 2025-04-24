@@ -458,34 +458,63 @@
 
     <table>
 
-        帧校验和：从报文的第二个字节（地址域的第一个字节）开始，到数据域的最后一个字节为止，所有字节都要参与校验。起始字节（68）和结束字节（16）不参与校验。<br><br>
+        帧校验和：从第一个帧起始符开始到校验码之前的所有各字节的模 256 的和，即各字节二进制算术和，不计超过 256 的溢出值。 <br><br>
 
-
-        <tr>
-            <td>起始字符（68H）</td>
-            <!-- <td rowspan="2">固定报文头</td> -->
-        </tr>
-        <tr>
-            <td>地址域</td>
-        </tr>
-        <tr>
-            <td>分隔字符（68H）</td>
-        </tr>
-        <tr>
-            <td>控制码</td>
-        </tr>
-        <tr>
-            <td>数据域长度</td>
-        </tr>
-        <tr>
-            <td>用户数据</td>
-        </tr>
-        <tr>
-            <td>帧校验和</td>
-        </tr>
-        <tr>
-            <td>结束字符（16H）</td>
-        </tr>
+        <thread>
+            <tr>
+                <th>说明</th>
+                <th>代码</th>
+            </tr>
+        </thread>
+        <tbody>
+            <tr>
+                <td>帧起始符</td>
+                <td>68H</td>
+            </tr>
+            <tr>
+                <td rowspan="6">地址域</td>
+                <td>A0</td>
+            </tr>
+            <tr>
+                <td>A1</td>
+            </tr>
+            <tr>
+                <td>A2</td>
+            </tr>
+            <tr>
+                <td>A3</td>
+            </tr>
+            <tr>
+                <td>A4</td>
+            </tr>
+            <tr>
+                <td>A5</td>
+            </tr>
+            <tr>
+                <td>帧起始符</td>
+                <td>68H</td>
+            </tr>
+            <tr>
+                <td>控制码</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>数据域长度</td>
+                <td>L</td>
+            </tr>
+            <tr>
+                <td>数据域</td>
+                <td>DATA</td>
+            </tr>
+            <tr>
+                <td>校验码</td>
+                <td>CS</td>
+            </tr>
+            <tr>
+                <td>结束符</td>
+                <td>16H</td>
+            </tr>
+        </tbody>
     </table>
     <p style="text-align: center;">图 2 传输帧格式</p>
 
