@@ -84,13 +84,78 @@
 
             // 长度
             element = document.createElement('p');
-            element.textContent = '长度：' + frame_len;
+            element.textContent = '长度：' + frame_len + ', ' + bytes.length;
             resultDiv.appendChild(element);
 
+            if (frame_len != bytes.length) {
+                return;
+            }
+
             // 控制域
+            const frame_C = bytes[3];
             element = document.createElement('p');
-            element.textContent = '控制域：' + hexArray[3] + 'H';
+            element.textContent = '控制域：' + frame_C.toString(16).padStart(2, '0').toUpperCase() + 'H';
             resultDiv.appendChild(element);
+
+            // 创建表格元素
+            const table = document.createElement('table');
+
+            // 创建表头行
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const headers = ['D7', 'D6', 'D5', 'D4-D3', 'D2-D0'];
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // 创建第二行，用于显示参数名称
+            const tbody = document.createElement('tbody');
+            const paramRow = document.createElement('tr');
+            const params = ['传输方向位 DIR', '启动标志位 PRM', '地址域标识 ADD', '协议版本号 VER', '保留'];
+            params.forEach(paramText => {
+                const td = document.createElement('td');
+                td.textContent = paramText;
+                paramRow.appendChild(td);
+            });
+            tbody.appendChild(paramRow);
+
+            // 创建第三行，用于解析参数
+            const explanationRow = document.createElement('tr');
+            let explanations = [];
+            if (frame_C & 0x80) {
+                explanations.push('上行方向')
+            } else {
+                explanations.push('下行方向')
+            }
+            if (frame_C & 0x40) {
+                explanations.push('来自启动站')
+            } else {
+                explanations.push('来自从动站')
+            }
+            if (frame_C & 0x20) {
+                explanations.push('带地址域')
+            } else {
+                explanations.push('不带地址域')
+            }
+            explanations.push(((frame_C >> 2) & 0b11).toString(16))
+            explanations.push(((frame_C >> 0) & 0b11).toString(16))
+
+            explanations.forEach(explanation => {
+                const td = document.createElement('td');
+                td.textContent = explanation;
+                explanationRow.appendChild(td);
+            });
+            tbody.appendChild(explanationRow);
+
+            // 将表体添加到表格
+            table.appendChild(tbody);
+
+            // 将表格添加到容器中
+            resultDiv.appendChild(table);
 
             // 数据
             element = document.createElement('p');
