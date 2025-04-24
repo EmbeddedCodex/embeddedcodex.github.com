@@ -19,6 +19,93 @@
             padding: 8px;
             text-align: center;
         }
+
+        /* 经典黑白 */
+        .black-white {
+            background-color: #FFFFFF;
+            /* 白色背景 */
+            color: #000000;
+            /* 黑色字体 */
+        }
+
+        .header,
+        /* 深蓝与白 */
+        .navy-white {
+            background-color: #00008B;
+            /* 深蓝色背景 */
+            color: #FFFFFF;
+            /* 白色字体 */
+        }
+
+        /* 海军蓝与黄 */
+        .navy-yellow {
+            background-color: #F8F8FF;
+            /* Ghost White 背景 */
+            color: #000080;
+            /* 海军蓝字体 */
+        }
+
+        .cs,
+        /* 森林绿与白 */
+        .green-white {
+            background-color: #228B22;
+            /* 森林绿背景 */
+            color: #FFFFFF;
+            /* 白色字体 */
+        }
+
+        /* 灰色与深灰 */
+        .gray-darkgray {
+            background-color: #A9A9A9;
+            /* 暗灰色背景 */
+            color: #000000;
+            /* 黑色字体 */
+        }
+
+        .data,
+        /* 金色与黑 */
+        .gold-black {
+            background-color: #FFD700;
+            /* 金色背景 */
+            color: #000000;
+            /* 黑色字体 */
+        }
+
+        .control,
+        /* 珊瑚与白 */
+        .coral-white {
+            background-color: #FF7F50;
+            /* 珊瑚色背景 */
+            color: #FFFFFF;
+            /* 白色字体 */
+        }
+
+        /* 青色与黑 */
+        .result,
+        .cyan-black {
+            background-color: #00FFFF;
+            /* 青色背景 */
+            color: #000000;
+            /* 黑色字体 */
+        }
+
+        /* 紫色与白 */
+        .footer,
+        .purple-white {
+            background-color: #800080;
+            /* 紫色背景 */
+            color: #FFFFFF;
+            /* 白色字体 */
+        }
+
+        /* 橄榄绿与白 */
+        .length,
+        .olive-white {
+            background-color: #6B8E23;
+            /* 橄榄绿背景 */
+            color: #FFFFFF;
+            /* 白色字体 */
+        }
     </style>
 </head>
 
@@ -67,31 +154,33 @@
             resultDiv.innerHTML = '';
 
             // 计算解析结果字符串
-            {
-                // 创建一个新的段落元素
-                let element = document.createElement('p');
 
-                // 设置段落的文本内容
-                element.textContent = '解析结果: ' + bytes.map(function (num) {
-                    return num.toString(16).padStart(2, '0').toUpperCase();
-                }).join(' ');
-
-                // 将新创建的段落元素添加到文档的 resultDiv 中
-                resultDiv.appendChild(element);
-            }
+            // 创建一个空的段落元素，存储结果字符串
+            let gelement = document.createElement('p');
+            gelement.classList.add('result');
+            gelement.innerHTML = '解析结果: ';
+            resultDiv.appendChild(gelement);
 
             // 1. 起始
             {
                 let element = document.createElement('p');
+                element.classList.add('header');
                 element.textContent = '起始：' + hexArray[0] + 'H';
                 resultDiv.appendChild(element);
+
+                const data = bytes.slice(0, 1).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
+                gelement.innerHTML += '<span class="header">' + data + '</span> ';
             }
 
             // 2. 长度 L
             {
                 let element = document.createElement('p');
-                element.textContent = '长度：' + hexArray.slice(1, 3) + '(' + frame_len + ')';
+                element.classList.add('length');
+                element.textContent = '长度：' + frame_len;
                 resultDiv.appendChild(element);
+
+                const data = bytes.slice(1, 3).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
+                gelement.innerHTML += '<span class="length">' + data + '</span> ';
 
                 if (frame_len != bytes.length) {
                     element.textContent = '报文缺失：' + frame_len + ' vs ' + bytes.length;
@@ -104,8 +193,12 @@
             const frame_C = bytes[3];
             {
                 let element = document.createElement('p');
+                element.classList.add('control');
                 element.textContent = '控制域：' + frame_C.toString(16).padStart(2, '0').toUpperCase() + 'H';
                 resultDiv.appendChild(element);
+
+                const data = bytes.slice(3, 4).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
+                gelement.innerHTML += '<span class="control">' + data + '</span> ';
 
                 // 创建表格元素
                 let table = document.createElement('table');
@@ -172,10 +265,14 @@
             {
                 let user_data = bytes.slice(4, frame_len - 2);
                 let element = document.createElement('p');
+                element.classList.add('data');
                 element.textContent = '用户数据：' + user_data.map(function (num) {
                     return num.toString(16).padStart(2, '0').toUpperCase();
                 }).join(' ');
                 resultDiv.appendChild(element);
+
+                const data = bytes.slice(4, frame_len - 2).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
+                gelement.innerHTML += '<span class="data">' + data + '</span> ';
 
                 // 创建表格元素
                 let table = document.createElement('table');
@@ -291,8 +388,12 @@
             // 5. 帧校验和
             {
                 let element = document.createElement('p');
+                element.classList.add('cs');
                 element.textContent = '帧校验和：' + hexArray[frame_len - 2] + 'H';
                 resultDiv.appendChild(element);
+
+                const data = bytes.slice(frame_len - 2, frame_len - 2 + 1).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
+                gelement.innerHTML += '<span class="cs">' + data + '</span> ';
 
                 if (bytes[frame_len - 2] != frame_cs) {
                     element.textContent = '帧校验和：' + '错误：' + hexArray[frame_len - 2] + 'H, ' + '正确：' + frame_cs.toString(16).padStart(2, '0').toUpperCase() + 'H';
@@ -303,8 +404,12 @@
             // 6. 结束
             {
                 let element = document.createElement('p');
+                element.classList.add('footer');
                 element.textContent = '结束：' + hexArray[frame_len - 1] + 'H';
                 resultDiv.appendChild(element);
+
+                const data = bytes.slice(frame_len - 1, frame_len - 1 + 1).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
+                gelement.innerHTML += '<span class="footer">' + data + '</span> ';
             }
         }
     </script>
@@ -385,10 +490,9 @@
     <p style="text-align: center;">图 2 传输帧格式</p>
 
 
-    
+
     <h1>698校验与解析</h1>
-    <input type="text" id="hexInput_698" placeholder="输入十六进制字符串" style="width: 92%;"
-        value="">
+    <input type="text" id="hexInput_698" placeholder="输入十六进制字符串" style="width: 92%;" value="">
     <button onclick="parseHex1()">解析</button>
     <div class="result_698" id="result_698"></div>
     <br>
@@ -400,7 +504,7 @@
         <br><br>
 
         帧校验 FCS ：为2字节，是对整帧不包含起始字符、结束字符和FCS本身的所有字节的校验。
-        
+
         <br><br>
 
 
