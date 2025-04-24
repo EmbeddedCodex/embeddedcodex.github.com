@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title of the document</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>传输帧格式</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <h1>3762校验与解析</h1>
+    <input type="text" id="hexInput" placeholder="输入十六进制字符串" style="width: 92%;"
+        value="68 0C 00 40 03 14 02 03 00 E8 44 16">
+    <button onclick="parseHex()">解析</button>
+    <div class="result" id="result"></div>
+    <br><br>
+
+    <script>
+        function parseHex() {
+            const input = document.getElementById('hexInput').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!/^[0-9A-Fa-f ]+$/.test(input)) {
+                resultDiv.innerHTML = "输入无效，请输入有效的十六进制字符串。";
+                return;
+            }
+            // 68 2E 00 60 01 00 00 00 00 00 20 01 00 00 00 00 02 16 01 02 02 E8 02 00 83 08 07 10 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16 E5 16 
+
+            const bytes = [];
+            const hexArray = input.split(' ');
+            for (let hex of hexArray) {
+                if (hex.length === 2) {
+                    const byte = parseInt(hex, 16);
+                    bytes.push(byte);
+                } else {
+                    resultDiv.innerHTML += `无效的十六进制数: ${hex}<br>`;
+                    return;
+                }
+            }
+
+            const frame_len = bytes[1] + bytes[2] * 16;
+
+            let frame_cs = 0;
+            for (let i = 3; i < frame_len - 2; i++) {
+                frame_cs += bytes[i];
+            }
+            frame_cs &= 0xFF;
+
+            resultDiv.innerHTML = `
+            解析结果：${bytes.map(
+                function(num){
+                    return num.toString(16).padStart(2,'0').toUpperCase();
+                }
+            )}<br>
+            起始：${hexArray[0]}H<br>
+            长度：${frame_len}<br>
+            控制域：${hexArray[3]}H<br>
+            数据：${hexArray.slice(4, frame_len - 2)}<br>
+            校验：${hexArray[frame_len - 2]}H, ${frame_cs.toString(16)}H<br>
+            结束：${hexArray[frame_len - 1]}H<br>
+            `;
+        }
+    </script>
+
+    <table>
+
+        长度 L ：是指帧数据的总长度，由 2 字节组成，包括用户数据长度 L1 和 6 个字节的固定
+        长度（起始字符、长度、控制域、校验和、结束字符）。<br><br>
+
+        帧校验和 CS ：是控制域和用户数据区所有字节的八位位组算术和，不考虑溢出位。<br><br>
+
+
+        <tr>
+            <td>起始字符（68H）</td>
+            <td rowspan="2">固定报文头</td>
+        </tr>
+        <tr>
+            <td>长度L</td>
+        </tr>
+        <tr>
+            <td>控制域C</td>
+            <td>控制域</td>
+        </tr>
+        <tr>
+            <td>用户数据</td>
+            <td>用户数据区</td>
+        </tr>
+        <tr>
+            <td>校验和 CS</td>
+            <td>帧校验和</td>
+        </tr>
+        <tr>
+            <td>结束字符（16H）</td>
+            <td>固定报文尾</td>
+        </tr>
+    </table>
+    <p style="text-align: center;">图 1 传输帧格式</p>
+
+</body>
+
+</html>
