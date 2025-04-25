@@ -92,6 +92,7 @@ th {
 .data { background-color: #FFD700; color: black; }
 .cs { background-color: #228B22; color: white; }
 .footer { background-color: #800080; color: white; }
+.address { background-color: #bda209; color: white; }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
