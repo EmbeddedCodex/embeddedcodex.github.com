@@ -1,293 +1,318 @@
-// 376.2 协议解析函数
+/**
+ * 解析376.2协议帧
+ * @returns {void}
+ */
 function parseHex_3762() {
-    const input = document.getElementById('hexInput_3762').value;
+    const inputElement = document.getElementById('hexInput_3762');
     const resultDiv = document.getElementById('result_3762');
+    const input = inputElement.value.trim();
 
-    if (!/^[0-9A-Fa-f ]+$/.test(input)) {
-        resultDiv.innerHTML = "输入无效，请输入有效的十六进制字符串。";
+    // 1. 输入验证
+    if (!isValidHexInput(input)) {
+        resultDiv.innerHTML = "输入无效，请输入有效的十六进制字符串（如：68 2E 00 60）。";
         return;
     }
 
-    let bytes = [];
-    let hexArray = input.trim().split(' ');
-    for (let hex of hexArray) {
-        if (hex.length === 2) {
-            const byte = parseInt(hex, 16);
-            bytes.push(byte);
-        } else {
-            resultDiv.innerHTML += `无效的十六进制数: ${hex}<br>`;
-            return;
-        }
+    // 2. 转换为字节数组
+    const bytes = hexStringToBytes(input);
+    if (!bytes) {
+        resultDiv.innerHTML = "输入格式错误，请确保每两个字符表示一个字节（如：68 2E）。";
+        return;
     }
 
-    const frame_len = bytes[1] + bytes[2] * 256;
-
-    let frame_cs = 0;
-    for (let i = 3; i < frame_len - 2; i++) {
-        frame_cs += bytes[i];
-    }
-    frame_cs &= 0xFF;
-
-    // 清空之前的内容
-    resultDiv.innerHTML = '';
-
-    // 创建结果字符串容器
-    let gelement = document.createElement('p');
-    gelement.classList.add('result');
-    gelement.innerHTML = '解析结果: ';
-    resultDiv.appendChild(gelement);
-
-    // 1. 起始
-    {
-        let element = document.createElement('p');
-        element.classList.add('header');
-        element.textContent = '起始：' + hexArray[0] + 'H';
-        resultDiv.appendChild(element);
-
-        const data = bytes.slice(0, 1).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
-        gelement.innerHTML += '<span class="header">' + data + '</span> ';
-    }
-
-    // 2. 长度 L
-    {
-        let element = document.createElement('p');
-        element.classList.add('length');
-        element.textContent = '长度：' + frame_len;
-        resultDiv.appendChild(element);
-
-        const data = bytes.slice(1, 3).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
-        gelement.innerHTML += '<span class="length">' + data + '</span> ';
-
-        if (frame_len != bytes.length) {
-            element.textContent = '报文缺失：' + frame_len + ' vs ' + bytes.length;
-            resultDiv.appendChild(element);
-            return;
-        }
-    }
-
-    // 3. 控制域 C
-    const frame_C = bytes[3];
-    {
-        let element = document.createElement('p');
-        element.classList.add('control');
-        element.textContent = '控制域：' + frame_C.toString(16).padStart(2, '0').toUpperCase() + 'H';
-        resultDiv.appendChild(element);
-
-        const data = bytes.slice(3, 4).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
-        gelement.innerHTML += '<span class="control">' + data + '</span> ';
-
-        // 创建表格元素
-        let table = document.createElement('table');
-
-        // 创建表头行
-        let thead = document.createElement('thead');
-        let headerRow = document.createElement('tr');
-        let headers = ['D7', 'D6', 'D5', 'D4-D3', 'D2-D0'];
-        headers.forEach(headerText => {
-            const th = document.createElement('th');
-            th.textContent = headerText;
-            headerRow.appendChild(th);
-        });
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-
-        // 创建第二行，用于显示参数名称
-        let tbody = document.createElement('tbody');
-        let paramRow = document.createElement('tr');
-        let params = ['传输方向位 DIR', '启动标志位 PRM', '地址域标识 ADD', '协议版本号 VER', '保留'];
-        params.forEach(paramText => {
-            const td = document.createElement('td');
-            td.textContent = paramText;
-            paramRow.appendChild(td);
-        });
-        tbody.appendChild(paramRow);
-
-        // 创建第三行，用于解析参数
-        let explanationRow = document.createElement('tr');
-        let explanations = [];
-        if (frame_C & 0x80) {
-            explanations.push('上行方向')
-        } else {
-            explanations.push('下行方向')
-        }
-        if (frame_C & 0x40) {
-            explanations.push('来自启动站')
-        } else {
-            explanations.push('来自从动站')
-        }
-        if (frame_C & 0x20) {
-            explanations.push('带地址域')
-        } else {
-            explanations.push('不带地址域')
-        }
-        explanations.push(((frame_C >> 2) & 0b11).toString(16))
-        explanations.push(((frame_C >> 0) & 0b11).toString(16))
-
-        explanations.forEach(explanation => {
-            const td = document.createElement('td');
-            td.textContent = explanation;
-            explanationRow.appendChild(td);
-        });
-        tbody.appendChild(explanationRow);
-
-        // 将表体添加到表格
-        table.appendChild(tbody);
-
-        // 将表格添加到容器中
-        resultDiv.appendChild(table);
-    }
-
-    // 4. 用户数据
-    {
-        let user_data = bytes.slice(4, frame_len - 2);
-        let element = document.createElement('p');
-        element.classList.add('data');
-        element.textContent = '用户数据：' + user_data.map(function (num) {
-            return num.toString(16).padStart(2, '0').toUpperCase();
-        }).join(' ');
-        resultDiv.appendChild(element);
-
-        const data = bytes.slice(4, frame_len - 2).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
-        gelement.innerHTML += '<span class="data">' + data + '</span> ';
-
-        // 创建表格元素
-        let table = document.createElement('table');
-        let tbody = document.createElement('tbody');
-
-        // 地址域 A
-        {
-            let paramRow = document.createElement('tr');
-            let explanations = ['地址域 A'];
-            if (frame_C & 0x20) {
-                const ASRC = user_data.slice(0, 0 + 6).map(function (num) {
-                    return num.toString(16).padStart(2, '0').toUpperCase();
-                }).join(' ');
-                const ADST = user_data.slice(6, 6 + 6).map(function (num) {
-                    return num.toString(16).padStart(2, '0').toUpperCase();
-                }).join(' ');
-
-                explanations.push(ASRC + ';\n' + ADST);
-                user_data = user_data.slice(6 * 2,);
-            } else {
-                explanations.push('不带地址域')
-            }
-            explanations.forEach(explanation => {
-                const td = document.createElement('td');
-                td.textContent = explanation;
-                paramRow.appendChild(td);
-            });
-            tbody.appendChild(paramRow);
-        }
-
-        // 应用功能码 AFN
-        {
-            let paramRow = document.createElement('tr');
-            let explanations = ['应用功能码 AFN'];
-            {
-                const AFN = user_data[0].toString(16).padStart(2, '0').toUpperCase() + 'H';
-                explanations.push(AFN);
-                user_data = user_data.slice(1,);
-            }
-            explanations.forEach(explanation => {
-                const td = document.createElement('td');
-                td.textContent = explanation;
-                paramRow.appendChild(td);
-            });
-            tbody.appendChild(paramRow);
-        }
-
-        // 帧序列域 SEQ
-        {
-            let paramRow = document.createElement('tr');
-            let explanations = ['帧序列域 SEQ'];
-            {
-                const SEQ = user_data[0].toString(16).padStart(2, '0').toUpperCase() + 'H(' + user_data[0].toString(10) + ')';
-                explanations.push(SEQ);
-                user_data = user_data.slice(1,);
-            }
-            explanations.forEach(explanation => {
-                const td = document.createElement('td');
-                td.textContent = explanation;
-                paramRow.appendChild(td);
-            });
-            tbody.appendChild(paramRow);
-        }
-
-        // 数据识别编码 DI
-        {
-            let paramRow = document.createElement('tr');
-            let explanations = ['数据识别编码 DI'];
-            {
-                const DI = user_data.slice(0, 4).map(function (num) {
-                    return num.toString(16).padStart(2, '0').toUpperCase();
-                }).join(' ');
-                explanations.push(DI);
-                user_data = user_data.slice(4,);
-            }
-            explanations.forEach(explanation => {
-                const td = document.createElement('td');
-                td.textContent = explanation;
-                paramRow.appendChild(td);
-            });
-            tbody.appendChild(paramRow);
-        }
-
-        // 数据识别内容
-        {
-            let paramRow = document.createElement('tr');
-            let explanations = ['数据识别内容'];
-            {
-                if (user_data.length > 0) {
-                    const BIN = user_data.map(function (num) {
-                        return num.toString(16).padStart(2, '0').toUpperCase();
-                    }).join(' ');
-                    explanations.push(BIN);
-                } else {
-                    explanations.push('无数据内容')
-                }
-            }
-            explanations.forEach(explanation => {
-                const td = document.createElement('td');
-                td.textContent = explanation;
-                paramRow.appendChild(td);
-            });
-            tbody.appendChild(paramRow);
-        }
-
-        // 将表体添加到表格
-        table.appendChild(tbody);
-
-        // 将表格添加到容器中
-        resultDiv.appendChild(table);
-    }
-
-    // 5. 帧校验和
-    {
-        let element = document.createElement('p');
-        element.classList.add('cs');
-        element.textContent = '帧校验和：' + hexArray[frame_len - 2] + 'H';
-        resultDiv.appendChild(element);
-
-        const data = bytes.slice(frame_len - 2, frame_len - 2 + 1).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
-        gelement.innerHTML += '<span class="cs">' + data + '</span> ';
-
-        if (bytes[frame_len - 2] != frame_cs) {
-            element.textContent = '帧校验和：' + '错误：' + hexArray[frame_len - 2] + 'H, ' + '正确：' + frame_cs.toString(16).padStart(2, '0').toUpperCase() + 'H';
-            resultDiv.appendChild(element);
-        }
-    }
-
-    // 6. 结束
-    {
-        let element = document.createElement('p');
-        element.classList.add('footer');
-        element.textContent = '结束：' + hexArray[frame_len - 1] + 'H';
-        resultDiv.appendChild(element);
-
-        const data = bytes.slice(frame_len - 1, frame_len - 1 + 1).map(function (num) { return num.toString(16).padStart(2, '0').toUpperCase() }).join(' ');
-        gelement.innerHTML += '<span class="footer">' + data + '</span> ';
+    // 3. 解析帧
+    try {
+        const frame = parse3762Frame(bytes);
+        display3762Result(frame, resultDiv);
+    } catch (error) {
+        resultDiv.innerHTML = `解析错误: ${error.message}`;
     }
 }
 
-// 导出函数供其他文件使用（使用模块化）
-// export { parseHex_3762 };
+// ====================== 工具函数 ======================
+
+/**
+ * 验证十六进制输入是否有效
+ * @param {string} input 
+ * @returns {boolean}
+ */
+function isValidHexInput(input) {
+    return /^([0-9A-Fa-f]{2}\s?)+$/.test(input);
+}
+
+/**
+ * 将十六进制字符串转换为字节数组
+ * @param {string} hexStr 
+ * @returns {number[]|null}
+ */
+function hexStringToBytes(hexStr) {
+    const hexArray = hexStr.split(/\s+/);
+    const bytes = [];
+
+    for (const hex of hexArray) {
+        if (hex.length !== 2) return null;
+        const byte = parseInt(hex, 16);
+        if (isNaN(byte)) return null;
+        bytes.push(byte);
+    }
+
+    return bytes;
+}
+
+/**
+ * 解析376.2协议帧
+ * @param {number[]} bytes 
+ * @returns {object}
+ */
+function parse3762Frame(bytes) {
+    // 1. 基本帧结构验证
+    if (bytes.length < 6) {
+        throw new Error("帧长度过短");
+    }
+
+    if (bytes[0] !== 0x68 || bytes[bytes.length - 1] !== 0x16) {
+        throw new Error("帧起始/结束符无效");
+    }
+
+    // 2. 解析长度
+    const frameLenByte = bytes.slice(1, 1 + 2);
+    const frameLenInfo = bytes[1] + (bytes[2] << 8);
+    if (frameLenInfo !== bytes.length) {
+        throw new Error(`长度不匹配: 声明长度=${frameLenInfo}, 实际长度=${bytes.length}`);
+    }
+
+    // 3. 计算校验和
+    const declaredChecksum = bytes[frameLenInfo - 2];
+    const calculatedChecksum = calculateChecksum(bytes, 3, frameLenInfo - 2);
+    const checksumValid = declaredChecksum === calculatedChecksum;
+
+    // 4. 解析控制域
+    const controlByte = bytes[3];
+    const controlInfo = {
+        direction: (controlByte & 0x80) ? '上行方向' : '下行方向',
+        source: (controlByte & 0x40) ? '来自启动站' : '来自从动站',
+        hasAddress: (controlByte & 0x20) ? '带地址域' : '不带地址域',
+        version: (controlByte >> 2) & 0b11,
+        reserved: controlByte & 0b11
+    };
+
+    // 5. 解析用户数据
+    const userDataByte = bytes.slice(4, frameLenInfo - 2);
+    const userDataInfo = parseUserData(userDataByte, controlByte);
+
+    return {
+        start: bytes[0],
+        length: {
+            byte: frameLenByte,
+            info: frameLenInfo,
+        },
+        control: {
+            byte: controlByte,
+            info: controlInfo,
+        },
+        userData: {
+            byte: userDataByte,
+            info: userDataInfo,
+        },
+        checksum: {
+            declared: declaredChecksum,
+            calculated: calculatedChecksum,
+            valid: checksumValid,
+        },
+        end: bytes[frameLenInfo - 1]
+    };
+}
+
+/**
+ * 计算校验和
+ * @param {number[]} bytes 
+ * @param {number} start 
+ * @param {number} end 
+ * @returns {number}
+ */
+function calculateChecksum(bytes, start, end) {
+    let sum = 0;
+    for (let i = start; i < end; i++) {
+        sum += bytes[i];
+    }
+    return sum & 0xFF;
+}
+
+/**
+ * 解析用户数据
+ * @param {number[]} userData 
+ * @param {number} controlByte 
+ * @returns {object}
+ */
+function parseUserData(userData, controlByte) {
+    let offset = 0;
+    const result = {};
+
+    // 1. 地址域（如果存在）
+    if (controlByte & 0x20) {
+        if (userData.length < 12) {
+            throw new Error("地址域数据不足");
+        }
+
+        result.address = {
+            source: userData.slice(0, 6).map(b => b.toString(16).padStart(2, '0').toUpperCase()),
+            destination: userData.slice(6, 12).map(b => b.toString(16).padStart(2, '0').toUpperCase())
+        };
+        offset = 12;
+    }
+
+    // 2. 应用功能码
+    if (userData.length <= offset) {
+        throw new Error("缺少应用功能码");
+    }
+    result.afn = userData[offset].toString(16).padStart(2, '0').toUpperCase();
+    offset++;
+
+    // 3. 帧序列域
+    if (userData.length <= offset) {
+        throw new Error("缺少帧序列域");
+    }
+    result.seq = {
+        hex: userData[offset].toString(16).padStart(2, '0').toUpperCase(),
+        decimal: userData[offset]
+    };
+    offset++;
+
+    // 4. 数据识别编码
+    if (userData.length < offset + 4) {
+        throw new Error("缺少完整的数据识别编码");
+    }
+    result.di = userData.slice(offset, offset + 4).map(b => b.toString(16).padStart(2, '0').toUpperCase());
+    offset += 4;
+
+    // 5. 剩余数据
+    if (offset < userData.length) {
+        result.data = userData.slice(offset).map(b => b.toString(16).padStart(2, '0').toUpperCase());
+    }
+
+    return result;
+}
+
+/**
+ * 显示解析结果
+ * @param {object} frame 
+ * @param {HTMLElement} resultDiv 
+ */
+function display3762Result(frame, resultDiv) {
+    resultDiv.innerHTML = '';
+
+    // 1. 创建简洁结果行
+    const summary = document.createElement('p');
+    summary.classList.add('result');
+    summary.innerHTML = `解析结果: 
+        <span class="header">${frame.start.toString(16).padStart(2, '0').toUpperCase()}</span>
+        <span class="length">${frame.length.byte.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
+        <span class="control">${frame.control.byte.toString(16).padStart(2, '0').toUpperCase()}</span>
+        <span class="data">${frame.userData.byte.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
+        <span class="cs">${frame.checksum.declared.toString(16).padStart(2, '0').toUpperCase()}</span>
+        <span class="footer">${frame.end.toString(16).padStart(2, '0').toUpperCase()}</span>
+    `;
+    resultDiv.appendChild(summary);
+
+    // 2. 显示详细解析结果
+    appendDetailSection(resultDiv, 'header', '起始', `${frame.start.toString(16).padStart(2, '0').toUpperCase()}H`);
+
+    appendDetailSection(resultDiv, 'length', '长度', `${frame.length.info} (${frame.length.info.toString(16).padStart(4, '0').toUpperCase()}H)`);
+
+    // 控制域详情
+    appendDetailSection(resultDiv, 'control', '控制域', `${frame.control.byte.toString(16).padStart(2, '0').toUpperCase()}H`);
+    const controlTable = createControlTable(frame.control);
+    resultDiv.appendChild(controlTable);
+
+    // 用户数据详情
+    appendDetailSection(resultDiv, 'data', '用户数据', `${frame.userData.byte.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
+    const userDataTable = createUserDataTable(frame.userData.info);
+    resultDiv.appendChild(userDataTable);
+
+    // 校验和
+    const checksumStatus = frame.checksum.valid ? '有效' : `无效（应为 ${frame.checksum.calculated.toString(16).padStart(2, '0').toUpperCase()}H）`;
+    appendDetailSection(resultDiv, frame.checksum.valid ? 'cs' : 'error', '帧校验和',
+        `${frame.checksum.declared.toString(16).padStart(2, '0').toUpperCase()}H (${checksumStatus})`);
+
+    appendDetailSection(resultDiv, 'footer', '结束', `${frame.end.toString(16).padStart(2, '0').toUpperCase()}H`);
+}
+
+// ====================== 显示辅助函数 ======================
+
+function appendDetailSection(container, className, title, content) {
+    const element = document.createElement('p');
+    element.classList.add(className);
+    element.innerHTML = `<strong>${title}:</strong> ${content}`;
+    container.appendChild(element);
+}
+
+function createControlTable(control) {
+    const table = document.createElement('table');
+
+    // 表头
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+        <tr>
+            <th>D7</th>
+            <th>D6</th>
+            <th>D5</th>
+            <th>D4-D3</th>
+            <th>D2-D0</th>
+        </tr>
+    `;
+    table.appendChild(thead);
+
+    // 表体
+    const tbody = document.createElement('tbody');
+    tbody.innerHTML = `
+        <tr>
+            <td>传输方向位 DIR</td>
+            <td>启动标志位 PRM</td>
+            <td>地址域标识 ADD</td>
+            <td>协议版本号 VER</td>
+            <td>保留</td>
+        </tr>
+        <tr>
+            <td>${control.info.direction}</td>
+            <td>${control.info.source}</td>
+            <td>${control.info.hasAddress}</td>
+            <td>${control.info.version}</td>
+            <td>${control.info.reserved}</td>
+        </tr>
+    `;
+    table.appendChild(tbody);
+
+    return table;
+}
+
+function createUserDataTable(userData) {
+    const table = document.createElement('table');
+    const tbody = document.createElement('tbody');
+
+    if (userData.address) {
+        addTableRow(tbody, '地址域 A', `
+            源地址: ${userData.address.source.join(' ')}<br>
+            目的地址: ${userData.address.destination.join(' ')}
+        `);
+    }
+
+    addTableRow(tbody, '应用功能码 AFN', `${userData.afn}H`);
+    addTableRow(tbody, '帧序列域 SEQ', `${userData.seq.hex}H (${userData.seq.decimal})`);
+    addTableRow(tbody, '数据识别编码 DI', userData.di.join(' '));
+
+    if (userData.data) {
+        addTableRow(tbody, '数据内容', userData.data.join(' '));
+    }
+
+    table.appendChild(tbody);
+    return table;
+}
+
+function addTableRow(tbody, label, value) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${label}</td>
+        <td>${value}</td>
+    `;
+    tbody.appendChild(row);
+}
