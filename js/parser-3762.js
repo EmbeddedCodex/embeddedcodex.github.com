@@ -9,7 +9,7 @@ function parseHex_3762() {
 
     // 1. 输入验证
     if (!isValidHexInput(input)) {
-        resultDiv.innerHTML = "输入无效，请输入有效的十六进制字符串（如：68 2E 00 60）。";
+        resultDiv.innerHTML = "输入无效，请输入有效的十六进制字符串（如：68 0C 00 40 01 18 01 01 02 E8 45 16）。";
         return;
     }
 
