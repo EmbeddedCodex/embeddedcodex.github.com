@@ -305,6 +305,176 @@ function createControlTable(control) {
     return table;
 }
 
+/**
+ * 解析BS类型字段的位说明
+ * @param {string} desc - 字段描述
+ * @returns {Object} 位配置对象
+ */
+function parseBitSpecification(desc) {
+    const bitSpec = {};
+
+    // 匹配所有位说明，例如 "任务响应标识(7)"、"任务优先级(0-3)"
+    const bitMatches = desc.match(/([^,]+)\((\d+)(?:-(\d+))?\)/g);
+
+    if (bitMatches) {
+        bitMatches.forEach(match => {
+            // 解析单个位说明
+            const specMatch = match.match(/([^\(]+)\((\d+)(?:-(\d+))?\)/);
+            if (specMatch) {
+                const bitName = specMatch[1].trim();
+                const startBit = parseInt(specMatch[2]);
+                const endBit = specMatch[3] ? parseInt(specMatch[3]) : startBit;
+
+                bitSpec[bitName] = {
+                    startBit: startBit,
+                    endBit: endBit,
+                    length: endBit - startBit + 1
+                };
+            }
+        });
+    }
+
+    return bitSpec;
+}
+
+/**
+ * 处理BS类型字段
+ * @param {Array<string>} hexPart - 十六进制数据数组
+ * @param {string} desc - 字段描述
+ * @returns {Object} 解析结果
+ */
+function processBitField(hexPart, desc) {
+    const hexStr = hexPart.join(' ');
+    const byteValue = parseInt(hexPart[0], 16);
+    const bits = byteValue.toString(2).padStart(8, '0');
+
+    // 解析位说明
+    const bitSpec = parseBitSpecification(desc);
+    const bitDetails = {};
+
+    // 根据位说明提取各个位字段
+    for (const [name, spec] of Object.entries(bitSpec)) {
+        // 计算位位置(注意二进制字符串是从左到右，高位到低位)
+        const startPos = 7 - spec.endBit;
+        const endPos = 7 - spec.startBit + 1;
+        const bitValue = bits.slice(startPos, endPos);
+
+        bitDetails[name] = {
+            bits: bitValue,
+            value: parseInt(bitValue, 2),
+            position: spec.startBit === spec.endBit
+                ? `位${spec.startBit}`
+                : `位${spec.startBit}-位${spec.endBit}`
+        };
+    }
+
+    return {
+        hexValue: hexStr,
+        binaryValue: bits,
+        bitDetails: bitDetails,
+        intValue: byteValue
+    };
+}
+
+/**
+ * 根据配置解析十六进制数据数组
+ * @param {Array<string>} dataArray - 要解析的十六进制数据数组
+ * @param {Array<Object>} config - 解析配置数组
+ * @returns {string} 格式化后的解析结果字符串(HTML格式)
+ */
+function parseDataByConfig(dataArray, config) {
+    // 输入验证
+    if (!Array.isArray(dataArray)) {
+        throw new Error('数据输入必须是数组');
+    }
+    if (!Array.isArray(config)) {
+        throw new Error('配置输入必须是数组');
+    }
+
+    let position = 0;
+    let result = {};
+    let resultStr = '';
+
+    // 遍历配置中的每个字段
+    for (const field of config) {
+        const [fieldName, fieldDesc] = Object.entries(field)[0];
+        let value;
+
+        // 特殊处理报文内容字段
+        if (fieldName === '报文内容') {
+            if (!result['报文长度']?.intValue) {
+                throw new Error('缺少报文长度字段');
+            }
+            const length = result['报文长度'].intValue;
+            const hexStr = dataArray.slice(position, position + length).join(' ');
+            value = {
+                hexStr: hexStr,
+                intValue: parseInt(hexStr.replace(/\s/g, ''), 16)
+            };
+            position += length;
+        }
+        // 处理标准字段
+        else {
+            const typeMatch = fieldDesc.match(/^(BIN|BS)/);
+            if (!typeMatch) {
+                throw new Error(`无法识别的字段类型: ${fieldDesc}`);
+            }
+
+            const type = typeMatch[1];
+            const size = parseInt(fieldDesc.match(/(\d+)字节/)?.[1] || '1', 10);
+
+            // 检查数据是否足够
+            if (position + size > dataArray.length) {
+                throw new Error(`数据不足，无法解析字段: ${fieldName}`);
+            }
+
+            const hexPart = dataArray.slice(position, position + size);
+            const hexStr = hexPart.join(' ');
+            position += size;
+
+            if (type === 'BIN') {
+                // 小端序解析
+                const littleEndianHex = [...hexPart].reverse().join('');
+                const intValue = parseInt(littleEndianHex, 16);
+                value = {
+                    intValue: intValue,
+                    hexStr: `${intValue} (${hexStr} → ${littleEndianHex}H)`
+                };
+            } else if (type === 'BS') {
+                // 位字段类型
+                let byteValue = processBitField(hexPart, fieldDesc);
+                // console.log(byteValue);
+                value = {
+                    hexStr: `${byteValue.hexValue}H (二进制: ${byteValue.binaryValue})`,
+                    bitDetails: byteValue.bitDetails,
+                };
+            }
+        }
+
+        // 存储结果并构建输出字符串
+        result[fieldName] = value;
+        resultStr += `${fieldName}: ${value.hexStr}<br>`;
+
+        // 如果是位字段，添加详细信息
+        if (value.bitDetails) {
+            console.log(value.bitDetails);
+            for (const [name, detail] of Object.entries(value.bitDetails)) {
+                console.log(name, detail);
+                resultStr += `&nbsp;&nbsp;${name}(${detail.position}): ${detail.value} (二进制: ${detail.bits})<br>`;
+            }
+        }
+    }
+
+    // 检查是否完整解析了所有数据
+    if (position < dataArray.length) {
+        const remainingData = dataArray.slice(position).join(' ');
+        resultStr += `<br>未解析的剩余数据: ${remainingData}`;
+        console.warn(`警告: 未解析的剩余数据: ${remainingData}`);
+    }
+
+    return resultStr;
+}
+
 function createUserDataTable(userData, control) {
     const table = document.createElement('table');
     const tbody = document.createElement('tbody');
@@ -324,7 +494,8 @@ function createUserDataTable(userData, control) {
     addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')} (${diData["名称"]})`);
 
     if (userData.data) {
-        addTableRow(tbody, '数据内容', userData.data.join(' '));
+        // addTableRow(tbody, '数据内容', userData.data.join(' '));
+        addTableRow(tbody, '数据内容', parseDataByConfig(userData.data, diData["字段"]));
     }
 
     table.appendChild(tbody);
