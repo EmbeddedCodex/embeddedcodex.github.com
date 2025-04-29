@@ -2,7 +2,7 @@
  * 解析376.2协议帧
  * @returns {void}
  */
-function parseHex_3762() {
+async function parseHex_3762() {
     const inputElement = document.getElementById('hexInput_3762');
     const resultDiv = document.getElementById('result_3762');
     const input = inputElement.value.trim();
@@ -22,7 +22,7 @@ function parseHex_3762() {
 
     // 3. 解析帧
     try {
-        const frame = parse3762Frame(bytes);
+        const frame = await parse3762Frame(bytes);
         display3762Result(frame, resultDiv);
     } catch (error) {
         resultDiv.innerHTML = `解析错误: ${error.message}`;
@@ -64,7 +64,7 @@ function hexStringToBytes(hexStr) {
  * @param {number[]} bytes 
  * @returns {object}
  */
-function parse3762Frame(bytes) {
+async function parse3762Frame(bytes) {
     // 1. 基本帧结构验证
     if (bytes.length < 6) {
         throw new Error("帧长度过短");
@@ -89,7 +89,7 @@ function parse3762Frame(bytes) {
     // 4. 解析控制域
     const controlByte = bytes[3];
     const controlInfo = {
-        direction: (controlByte & 0x80) ? '上行方向' : '下行方向',
+        direction: (controlByte & 0x80) ? '上行报文' : '下行报文',
         source: (controlByte & 0x40) ? '来自启动站' : '来自从动站',
         hasAddress: (controlByte & 0x20) ? '带地址域' : '不带地址域',
         version: (controlByte >> 2) & 0b11,
@@ -99,6 +99,26 @@ function parse3762Frame(bytes) {
     // 5. 解析用户数据
     const userDataByte = bytes.slice(4, frameLenInfo - 2);
     const userDataInfo = parseUserData(userDataByte, controlByte);
+
+    // 补充 JSON 数据
+    const file_func = `${userDataInfo.di[3]}_${userDataInfo.di[1]}`;
+    const file_path = `json/3762/${file_func}.json`
+    // console.log('www1', file_path);
+    try {
+        const response = await fetch(file_path);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json(); // 解析 JSON 数据
+        userDataInfo.json = data[`${file_func}`];
+        // userDataInfo.json = {
+        //     name: data[`${file_func}`]["名称"],
+        //     desc: data[`${file_func}`]["描述"],
+        //     data: data[`${file_func}`][controlInfo.direction][[...userDataInfo.di].reverse().join(' ')],
+        // };
+    } catch (error) {
+        console.error('There has been a problem with your fetch operation:', error);
+    }
 
     return {
         start: bytes[0],
@@ -226,7 +246,7 @@ function display3762Result(frame, resultDiv) {
 
     // 用户数据详情
     appendDetailSection(resultDiv, 'data', '用户数据', `${frame.userData.byte.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
-    const userDataTable = createUserDataTable(frame.userData.info);
+    const userDataTable = createUserDataTable(frame.userData.info, frame.control.info);
     resultDiv.appendChild(userDataTable);
 
     // 校验和
@@ -285,20 +305,23 @@ function createControlTable(control) {
     return table;
 }
 
-function createUserDataTable(userData) {
+function createUserDataTable(userData, control) {
     const table = document.createElement('table');
     const tbody = document.createElement('tbody');
 
     if (userData.address) {
         addTableRow(tbody, '地址域 A', `
-            源地址: ${userData.address.source.join(' ')}<br>
-            目的地址: ${userData.address.destination.join(' ')}
+            源地址: ${userData.address.source.join(' ')} ( ${[...userData.address.source].reverse().join('')} )<br>
+            目的地址: ${userData.address.destination.join(' ')} ( ${[...userData.address.destination].reverse().join('')} )
         `);
     }
 
-    addTableRow(tbody, '应用功能码 AFN', `${userData.afn}H`);
+    console.log('rrr', userData.json);
+    const jsonData = userData.json;
+    addTableRow(tbody, '应用功能码 AFN', `${userData.afn}H (${jsonData[`名称`]})`);
     addTableRow(tbody, '帧序列域 SEQ', `${userData.seq.hex}H (${userData.seq.decimal})`);
-    addTableRow(tbody, '数据识别编码 DI', userData.di.join(' '));
+    const diData = jsonData[`${control.direction}`][userData.di.reverse().join(' ')]
+    addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')} (${diData["名称"]})`);
 
     if (userData.data) {
         addTableRow(tbody, '数据内容', userData.data.join(' '));
