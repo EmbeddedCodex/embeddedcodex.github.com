@@ -313,7 +313,7 @@ function createControlTable(control) {
 function parseBitSpecification(desc) {
     const bitSpec = {};
 
-    // 匹配所有位说明，例如 "任务响应标识(7)"、"任务优先级(0-3)"
+    // 匹配所有位说明，例如 "任务响应标识(7)"，"任务优先级(0-3)"
     const bitMatches = desc.match(/([^,]+)\((\d+)(?:-(\d+))?\)/g);
 
     if (bitMatches) {
@@ -415,7 +415,7 @@ function parseDataByConfig(dataArray, config) {
         }
         // 处理标准字段
         else {
-            const typeMatch = fieldDesc.match(/^(BIN|BS)/);
+            const typeMatch = fieldDesc.match(/^(BIN|BS|ASCII|YYMMDD|BCD)/);
             if (!typeMatch) {
                 throw new Error(`无法识别的字段类型: ${fieldDesc}`);
             }
@@ -447,6 +447,32 @@ function parseDataByConfig(dataArray, config) {
                 value = {
                     hexStr: `${byteValue.hexValue}H (二进制: ${byteValue.binaryValue})`,
                     bitDetails: byteValue.bitDetails,
+                };
+            } else if (type === 'ASCII') {
+                // ASCII类型：将十六进制直接转换为ASCII字符串
+                const asciiStr = hexPart.map(hex => {
+                    const charCode = parseInt(hex, 16);
+                    return charCode >= 32 && charCode <= 126 ? String.fromCharCode(charCode) : '·';
+                }).join('');
+
+                value = {
+                    hexStr: asciiStr,
+                    asciiValue: asciiStr,
+                    length: hexPart.length
+                };
+            } else if (type === 'YYMMDD') {
+                // YYMMDD类型：日期格式解析 (BCD编码)
+                if (hexPart.length !== 3) {
+                    throw new Error(`YYMMDD格式需要3字节，得到${hexPart.length}字节`);
+                }
+
+                value = {
+                    hexStr: `20${hexPart[0]}-${hexPart[1]}-${hexPart[2]}`, // 假设21世纪
+                };
+            } else if (type === 'BCD') {
+                // BCD类型
+                value = {
+                    hexStr: `${hexPart[0]}-${hexPart[1]}`
                 };
             }
         }
