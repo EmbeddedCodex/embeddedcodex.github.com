@@ -6,12 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>协议帧格式解析工具</title>
     <link rel="stylesheet" href="css/styles.css">
-    <script src="js/main.js"></script>
-    <script src="js/parser-3762.js"></script>
-    <script src="js/parser-645.js"></script>
-    <script src="js/parser-698.js"></script>
 </head>
-
 
 <body>
     <header>
@@ -19,166 +14,209 @@
         <p>支持 DL/T 376.2、DL/T 645 和 DL/T 698 协议的帧格式解析</p>
     </header>
 
-    <main>
-        <section id="protocol-3762">
-            <h2>376.2 协议解析</h2>
-            <div class="input-group">
-                <input type="text" id="hexInput_3762" class="hex-input"
-                    placeholder="输入十六进制字符串，例如: 68 2E 00 60 01 00 00 00 00 00 20 01 00 00 00 00 02 16 01 02 02 E8 02 00 83 08 07 10 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16 E5 16"
-                    value="68 2E 00 60 01 00 00 00 00 00 20 01 00 00 00 00 02 16 01 02 02 E8 02 00 83 08 07 10 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16 E5 16">
-                <button onclick="parseHex_3762()" class="parse-btn">解析</button>
-            </div>
-            <div class="result-container" id="result_3762"></div>
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="sidebar-item active" onclick="switchSection('protocol-3762')">376.2 协议</div>
+            <div class="sidebar-item" onclick="switchSection('protocol-645')">645 协议</div>
+            <div class="sidebar-item" onclick="switchSection('protocol-698')">698 协议</div>
+        </div>
 
-            <h3>376.2 协议帧格式说明</h3>
-            <table>
-                <tr>
-                    <th>字段</th>
-                    <th>说明</th>
-                </tr>
-                <tr>
-                    <td>起始字符（68H）</td>
-                    <td rowspan="2">固定报文头</td>
-                </tr>
-                <tr>
-                    <td>长度L</td>
-                </tr>
-                <tr>
-                    <td>控制域C</td>
-                    <td>控制域</td>
-                </tr>
-                <tr>
-                    <td>用户数据</td>
-                    <td>用户数据区</td>
-                </tr>
-                <tr>
-                    <td>校验和 CS</td>
-                    <td>帧校验和</td>
-                </tr>
-                <tr>
-                    <td>结束字符（16H）</td>
-                    <td>固定报文尾</td>
-                </tr>
-            </table>
-            <p class="note">长度 L：是指帧数据的总长度，由 2 字节组成，包括用户数据长度 L1 和 6 个字节的固定长度（起始字符、长度、控制域、校验和、结束字符）。</p>
-            <p class="note">帧校验和 CS：是控制域和用户数据区所有字节的八位位组算术和，不考虑溢出位。</p>
-        </section>
+        <div class="content-area">
+            <section id="protocol-3762" class="protocol-section active">
+                <!-- 376.2协议内容保持不变 -->
+                <div>
+                    <h2>376.2 协议解析</h2>
+                    <div class="input-group">
+                        <input type="text" id="hexInput_3762" class="hex-input"
+                            placeholder="输入十六进制字符串，例如: 68 2E 00 60 01 00 00 00 00 00 20 01 00 00 00 00 02 16 01 02 02 E8 02 00 83 08 07 10 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16 E5 16"
+                            value="68 2E 00 60 01 00 00 00 00 00 20 01 00 00 00 00 02 16 01 02 02 E8 02 00 83 08 07 10 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16 E5 16">
+                        <button onclick="parseHex_3762()" class="parse-btn">解析</button>
+                    </div>
+                    <div class="result-container" id="result_3762"></div>
 
-        <section id="protocol-645">
-            <h2>645 协议解析</h2>
-            <div class="input-group">
-                <input type="text" id="hexInput_645" class="hex-input"
-                    placeholder="输入十六进制字符串，例如: 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16"
-                    value="68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16">
-                <button onclick="parseHex_645()" class="parse-btn">解析</button>
-            </div>
-            <div class="result-container" id="result_645"></div>
+                    <h3>376.2 协议帧格式说明</h3>
+                    <table>
+                        <tr>
+                            <th>字段</th>
+                            <th>说明</th>
+                        </tr>
+                        <tr>
+                            <td>起始字符（68H）</td>
+                            <td rowspan="2">固定报文头</td>
+                        </tr>
+                        <tr>
+                            <td>长度L</td>
+                        </tr>
+                        <tr>
+                            <td>控制域C</td>
+                            <td>控制域</td>
+                        </tr>
+                        <tr>
+                            <td>用户数据</td>
+                            <td>用户数据区</td>
+                        </tr>
+                        <tr>
+                            <td>校验和 CS</td>
+                            <td>帧校验和</td>
+                        </tr>
+                        <tr>
+                            <td>结束字符（16H）</td>
+                            <td>固定报文尾</td>
+                        </tr>
+                    </table>
+                    <p class="note">长度 L：是指帧数据的总长度，由 2 字节组成，包括用户数据长度 L1 和 6 个字节的固定长度（起始字符、长度、控制域、校验和、结束字符）。</p>
+                    <p class="note">帧校验和 CS：是控制域和用户数据区所有字节的八位位组算术和，不考虑溢出位。</p>
+                </div>
+            </section>
 
-            <h3>645 协议帧格式说明</h3>
-            <table>
-                <tr>
-                    <th>说明</th>
-                    <th>代码</th>
-                </tr>
-                <tr>
-                    <td>帧起始符</td>
-                    <td>68H</td>
-                </tr>
-                <tr>
-                    <td rowspan="6">地址域</td>
-                    <td>A0</td>
-                </tr>
-                <tr>
-                    <td>A1</td>
-                </tr>
-                <tr>
-                    <td>A2</td>
-                </tr>
-                <tr>
-                    <td>A3</td>
-                </tr>
-                <tr>
-                    <td>A4</td>
-                </tr>
-                <tr>
-                    <td>A5</td>
-                </tr>
-                <tr>
-                    <td>帧起始符</td>
-                    <td>68H</td>
-                </tr>
-                <tr>
-                    <td>控制码</td>
-                    <td>C</td>
-                </tr>
-                <tr>
-                    <td>数据域长度</td>
-                    <td>L</td>
-                </tr>
-                <tr>
-                    <td>数据域</td>
-                    <td>DATA</td>
-                </tr>
-                <tr>
-                    <td>校验码</td>
-                    <td>CS</td>
-                </tr>
-                <tr>
-                    <td>结束符</td>
-                    <td>16H</td>
-                </tr>
-            </table>
-            <p class="note">帧校验和：从第一个帧起始符开始到校验码之前的所有各字节的模 256 的和，即各字节二进制算术和，不计超过 256 的溢出值。</p>
-        </section>
+            <section id="protocol-645" class="protocol-section">
+                <!-- 645协议内容保持不变 -->
+                <div>
+                    <h2>645 协议解析</h2>
+                    <div class="input-group">
+                        <input type="text" id="hexInput_645" class="hex-input"
+                            placeholder="输入十六进制字符串，例如: 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16"
+                            value="68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16">
+                        <button onclick="parseHex_645()" class="parse-btn">解析</button>
+                    </div>
+                    <div class="result-container" id="result_645"></div>
 
-        <section id="protocol-698">
-            <h2>698 协议解析</h2>
-            <div class="input-group">
-                <input type="text" id="hexInput_698" class="hex-input"
-                    placeholder="输入十六进制字符串，例如: 68 18 00 43 26 01 30 01 00 00 00 00 A1 83 EE 05 01 02 20 00 02 01 00 6B AF 16"
-                    value="68 18 00 43 26 01 30 01 00 00 00 00 A1 83 EE 05 01 02 20 00 02 01 00 6B AF 16">
-                <button onclick="parseHex_698()" class="parse-btn">解析</button>
-            </div>
-            <div class="result-container" id="result_698"></div>
+                    <h3>645 协议帧格式说明</h3>
+                    <table>
+                        <tr>
+                            <th>说明</th>
+                            <th>代码</th>
+                        </tr>
+                        <tr>
+                            <td>帧起始符</td>
+                            <td>68H</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="6">地址域</td>
+                            <td>A0</td>
+                        </tr>
+                        <tr>
+                            <td>A1</td>
+                        </tr>
+                        <tr>
+                            <td>A2</td>
+                        </tr>
+                        <tr>
+                            <td>A3</td>
+                        </tr>
+                        <tr>
+                            <td>A4</td>
+                        </tr>
+                        <tr>
+                            <td>A5</td>
+                        </tr>
+                        <tr>
+                            <td>帧起始符</td>
+                            <td>68H</td>
+                        </tr>
+                        <tr>
+                            <td>控制码</td>
+                            <td>C</td>
+                        </tr>
+                        <tr>
+                            <td>数据域长度</td>
+                            <td>L</td>
+                        </tr>
+                        <tr>
+                            <td>数据域</td>
+                            <td>DATA</td>
+                        </tr>
+                        <tr>
+                            <td>校验码</td>
+                            <td>CS</td>
+                        </tr>
+                        <tr>
+                            <td>结束符</td>
+                            <td>16H</td>
+                        </tr>
+                    </table>
+                    <p class="note">帧校验和：从第一个帧起始符开始到校验码之前的所有各字节的模 256 的和，即各字节二进制算术和，不计超过 256 的溢出值。</p>
+                </div>
+            </section>
 
-            <h3>698 协议帧格式说明</h3>
-            <table>
-                <tr>
-                    <th>字段</th>
-                    <th>说明</th>
-                </tr>
-                <tr>
-                    <td>起始字符（68H）</td>
-                    <td rowspan="5">帧头</td>
-                </tr>
-                <tr>
-                    <td>长度域 L</td>
-                </tr>
-                <tr>
-                    <td>控制域 C</td>
-                </tr>
-                <tr>
-                    <td>地址域 A</td>
-                </tr>
-                <tr>
-                    <td>帧头校验 HCS</td>
-                </tr>
-                <tr>
-                    <td>链路用户数据</td>
-                    <td>链路用户数据（应用层）</td>
-                </tr>
-                <tr>
-                    <td>帧校验 FCS</td>
-                    <td rowspan="2">帧尾</td>
-                </tr>
-                <tr>
-                    <td>结束字符（16H）</td>
-                </tr>
-            </table>
-            <p class="note">帧头校验 HCS：是对帧头部分不包含起始字符和HCS本身的所有字节的校验。</p>
-            <p class="note">帧校验 FCS：是对整帧不包含起始字符、结束字符和FCS本身的所有字节的校验。</p>
-        </section>
-    </main>
+            <section id="protocol-698" class="protocol-section">
+                <!-- 698协议内容保持不变 -->
+                <div>
+                    <h2>698 协议解析</h2>
+                    <div class="input-group">
+                        <input type="text" id="hexInput_698" class="hex-input"
+                            placeholder="输入十六进制字符串，例如: 68 18 00 43 26 01 30 01 00 00 00 00 A1 83 EE 05 01 02 20 00 02 01 00 6B AF 16"
+                            value="68 18 00 43 26 01 30 01 00 00 00 00 A1 83 EE 05 01 02 20 00 02 01 00 6B AF 16">
+                        <button onclick="parseHex_698()" class="parse-btn">解析</button>
+                    </div>
+                    <div class="result-container" id="result_698"></div>
+
+                    <h3>698 协议帧格式说明</h3>
+                    <table>
+                        <tr>
+                            <th>字段</th>
+                            <th>说明</th>
+                        </tr>
+                        <tr>
+                            <td>起始字符（68H）</td>
+                            <td rowspan="5">帧头</td>
+                        </tr>
+                        <tr>
+                            <td>长度域 L</td>
+                        </tr>
+                        <tr>
+                            <td>控制域 C</td>
+                        </tr>
+                        <tr>
+                            <td>地址域 A</td>
+                        </tr>
+                        <tr>
+                            <td>帧头校验 HCS</td>
+                        </tr>
+                        <tr>
+                            <td>链路用户数据</td>
+                            <td>链路用户数据（应用层）</td>
+                        </tr>
+                        <tr>
+                            <td>帧校验 FCS</td>
+                            <td rowspan="2">帧尾</td>
+                        </tr>
+                        <tr>
+                            <td>结束字符（16H）</td>
+                        </tr>
+                    </table>
+                    <p class="note">帧头校验 HCS：是对帧头部分不包含起始字符和HCS本身的所有字节的校验。</p>
+                    <p class="note">帧校验 FCS：是对整帧不包含起始字符、结束字符和FCS本身的所有字节的校验。</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        function switchSection(sectionId) {
+            // 隐藏所有内容区域
+            document.querySelectorAll('.protocol-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // 取消所有侧边栏项的活动状态
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 显示选中的内容区域
+            document.getElementById(sectionId).classList.add('active');
+
+            // 设置选中侧边栏项的活动状态
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+
+    <!-- 原有的JS文件引用 -->
+    <script src="js/main.js"></script>
+    <script src="js/parser-3762.js"></script>
+    <script src="js/parser-645.js"></script>
+    <script src="js/parser-698.js"></script>
 </body>
 
 </html>
