@@ -3,57 +3,59 @@
  * @returns {void}
  */
 function parseHex_698() {
+    // 获取输入框和结果显示区域的DOM元素
     const inputElement = document.getElementById('hexInput_698');
     const resultDiv = document.getElementById('result_698');
-    const input = inputElement.value.trim();
+    const input = inputElement.value.trim(); // 获取输入值并去除首尾空格
 
-    // 1. 输入验证
+    // 1. 输入验证：检查输入是否为有效的十六进制字符串
     if (!isValidHexInput(input)) {
         resultDiv.innerHTML = "输入无效，请输入有效的十六进制字符串（如：68 18 00 43 26 01 30 01 00 00 00 00 A1 83 EE 05 01 02 20 00 02 01 00 6B AF 16）。";
         return;
     }
 
-    // 2. 转换为字节数组
+    // 2. 转换为字节数组：将输入的十六进制字符串转换为字节数组
     const bytes = hexStringToBytes(input);
     if (!bytes) {
         resultDiv.innerHTML = "输入格式错误，请确保每两个字符表示一个字节（如：68 2E）。";
         return;
     }
 
-    // 3. 解析帧
+    // 3. 解析帧：调用解析函数解析字节数组
     try {
         const frame = parse698Frame(bytes);
-        display698Result(frame, resultDiv);
+        display698Result(frame, resultDiv); // 显示解析结果
     } catch (error) {
-        resultDiv.innerHTML = `解析错误: ${error.message}`;
+        resultDiv.innerHTML = `解析错误: ${error.message}`; // 捕获并显示解析错误
     }
 }
-
 // ====================== 工具函数 ======================
 
 /**
  * 验证十六进制输入是否有效
- * @param {string} input 
- * @returns {boolean}
+ * @param {string} input 十六进制字符串
+ * @returns {boolean} 是否有效
  */
 function isValidHexInput(input) {
+    // 使用正则表达式验证输入是否为有效的十六进制字符串
+    // 格式要求：每两个字符表示一个字节，字节之间可以有空格
     return /^([0-9A-Fa-f]{2}\s?)+$/.test(input);
 }
 
 /**
  * 将十六进制字符串转换为字节数组
- * @param {string} hexStr 
- * @returns {number[]|null}
+ * @param {string} hexStr 十六进制字符串
+ * @returns {number[]|null} 字节数组或null（如果格式错误）
  */
 function hexStringToBytes(hexStr) {
-    const hexArray = hexStr.split(/\s+/);
+    const hexArray = hexStr.split(/\s+/); // 按空格分割字符串
     const bytes = [];
 
     for (const hex of hexArray) {
-        if (hex.length !== 2) return null;
-        const byte = parseInt(hex, 16);
-        if (isNaN(byte)) return null;
-        bytes.push(byte);
+        if (hex.length !== 2) return null; // 每个字节必须是两位十六进制数
+        const byte = parseInt(hex, 16); // 将十六进制字符串转换为数字
+        if (isNaN(byte)) return null; // 如果转换失败，返回null
+        bytes.push(byte); // 将字节添加到数组
     }
 
     return bytes;
@@ -61,8 +63,8 @@ function hexStringToBytes(hexStr) {
 
 /**
  * 解析DLT698协议帧
- * @param {number[]} bytes 
- * @returns {object}
+ * @param {number[]} bytes 字节数组
+ * @returns {object} 解析结果
  */
 function parse698Frame(bytes) {
     // 1. 基本帧结构验证
@@ -75,8 +77,8 @@ function parse698Frame(bytes) {
     }
 
     // 2. 解析长度域
-    const frameLenBytes = bytes.slice(1, 1 + 2);
-    const frameLenInfo = bytes[1] + (bytes[2] << 8);
+    const frameLenBytes = bytes.slice(1, 1 + 2); // 获取长度字段的字节
+    const frameLenInfo = bytes[1] + (bytes[2] << 8); // 计算长度值
     if (frameLenInfo + 2 !== bytes.length) {
         throw new Error(`长度不匹配: 声明长度=${frameLenInfo}, 实际长度=${bytes.length - 2}`);
     }
@@ -149,8 +151,8 @@ function parse698Frame(bytes) {
 
 /**
  * 获取DLT698功能码描述
- * @param {number} code 
- * @returns {string}
+ * @param {number} code 功能码
+ * @returns {string} 功能码描述
  */
 function get698FunctionCode(code) {
     const codes = {
@@ -168,8 +170,8 @@ function get698FunctionCode(code) {
 
 /**
  * 获取DLT698协议类型描述
- * @param {number} id 
- * @returns {string}
+ * @param {number} id 协议类型ID
+ * @returns {string} 协议类型描述
  */
 function get698ProtocolType(id) {
     const types = {
@@ -187,24 +189,24 @@ function get698ProtocolType(id) {
 }
 
 /**
- * 获取DLT698协议地址类型
- * @param {number} id 
- * @returns {string}
+ * 获取DLT698协议地址类型描述
+ * @param {number} id 地址类型ID
+ * @returns {string} 地址类型描述
  */
 function get698ProtocolAddressType(id) {
     const types = {
         0x01: '单地址',
-        0x01: '通配地址',
-        0x02: '组地址',
-        0x03: '广播地址',
+        0x02: '通配地址',
+        0x03: '组地址',
+        0x04: '广播地址',
     };
-    return types[id] || `未知协议类型 (0x${id.toString(16).padStart(2, '0').toUpperCase()})`;
+    return types[id] || `未知地址类型 (0x${id.toString(16).padStart(2, '0').toUpperCase()})`;
 }
 
 /**
  * 解析DLT698数据单元
- * @param {number[]} data 
- * @returns {object}
+ * @param {number[]} data 数据单元的字节数组
+ * @returns {object} 解析结果
  */
 function parse698DataUnit(data) {
     if (data.length === 0) return { type: '无数据单元' };
@@ -258,39 +260,39 @@ function parse698DataUnit(data) {
 
 /**
  * 计算校验和
- * @param {number[]} bytes 
- * @param {number} start 
- * @param {number} end 
- * @returns {number}
+ * @param {number[]} bytes 字节数组
+ * @param {number} start 起始索引
+ * @param {number} end 结束索引
+ * @returns {number} 校验和
  */
 function calculateChecksum(bytes, start, end) {
     let sum = 0;
     for (let i = start; i < end; i++) {
-        sum += bytes[i];
+        sum += bytes[i]; // 累加字节
     }
-    return sum & 0xFF;
+    return sum & 0xFF; // 返回校验和（取低8位）
 }
 
 /**
  * 显示解析结果
- * @param {object} frame 
- * @param {HTMLElement} resultDiv 
+ * @param {object} frame 解析结果对象
+ * @param {HTMLElement} resultDiv 结果显示区域的DOM元素
  */
 function display698Result(frame, resultDiv) {
-    resultDiv.innerHTML = '';
+    resultDiv.innerHTML = ''; // 清空结果显示区域
 
     // 1. 创建简洁结果行
     const summary = document.createElement('p');
     summary.classList.add('result');
     summary.innerHTML = `解析结果: 
-    <span class="header">${frame.start.toString(16).padStart(2, '0').toUpperCase()}</span>
-    <span class="length">${frame.length.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-    <span class="control">${frame.control.byte.toString(16).padStart(2, '0').toUpperCase()}</span>
-    <span class="address">${frame.address.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-    <span class="cs">${frame.hcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-    <span class="data">${frame.userData.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-    <span class="cs">${frame.fcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-    <span class="footer">${frame.end.toString(16).padStart(2, '0').toUpperCase()}</span>
+        <span class="header">${frame.start.toString(16).padStart(2, '0').toUpperCase()}</span>
+        <span class="length">${frame.length.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
+        <span class="control">${frame.control.byte.toString(16).padStart(2, '0').toUpperCase()}</span>
+        <span class="address">${frame.address.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
+        <span class="cs">${frame.hcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
+        <span class="data">${frame.userData.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
+        <span class="cs">${frame.fcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
+        <span class="footer">${frame.end.toString(16).padStart(2, '0').toUpperCase()}</span>
     `;
     resultDiv.appendChild(summary);
 
@@ -322,6 +324,13 @@ function display698Result(frame, resultDiv) {
 
 // ====================== 显示辅助函数 ======================
 
+/**
+ * 在结果显示区域追加详细解析结果
+ * @param {HTMLElement} container 结果显示区域的DOM元素
+ * @param {string} className 类名，用于添加样式
+ * @param {string} title 标题，用于标识该部分的内容
+ * @param {string} content 内容，显示该部分的详细信息
+ */
 function appendDetailSection(container, className, title, content) {
     const element = document.createElement('p');
     element.classList.add(className);
@@ -329,6 +338,11 @@ function appendDetailSection(container, className, title, content) {
     container.appendChild(element);
 }
 
+/**
+ * 创建DLT698控制域的详细表格
+ * @param {object} control 控制域信息对象
+ * @returns {HTMLTableElement} 控制域表格
+ */
 function create698ControlTable(control) {
     const table = document.createElement('table');
 
@@ -371,6 +385,11 @@ function create698ControlTable(control) {
     return table;
 }
 
+/**
+ * 创建DLT698数据单元的详细表格
+ * @param {object} dataUnit 数据单元的解析结果
+ * @returns {HTMLTableElement} 数据单元表格
+ */
 function create698DataUnitTable(dataUnit) {
     const table = document.createElement('table');
     const tbody = document.createElement('tbody');
@@ -401,6 +420,12 @@ function create698DataUnitTable(dataUnit) {
     return table;
 }
 
+/**
+ * 向表格中添加行
+ * @param {HTMLElement} tbody 表体元素
+ * @param {string} label 行的标签（例如字段名称）
+ * @param {string} value 行的值（例如字段的详细信息）
+ */
 function addTableRow(tbody, label, value) {
     const row = document.createElement('tr');
     row.innerHTML = `
