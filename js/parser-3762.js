@@ -114,6 +114,7 @@ async function parse3762Frame(bytes) {
         userDataInfo.json = data[`${file_func}`]; // 将JSON数据添加到用户数据信息中
     } catch (error) {
         console.error('There has been a problem with your fetch operation:', error);
+        userDataInfo.json = null;
     }
 
     // 返回解析结果
@@ -587,19 +588,32 @@ function createUserDataTable(userData, control) {
     // 添加应用功能码信息到表格
     console.log('rrr', userData.json); // 打印用户数据的JSON配置（用于调试）
     const jsonData = userData.json; // 获取用户数据的JSON配置
-    addTableRow(tbody, '应用功能码 AFN', `${userData.afn}H (${jsonData[`名称`]})`); // 显示应用功能码及其名称
+    if (jsonData) {
+        addTableRow(tbody, '应用功能码 AFN', `${userData.afn}H (${jsonData[`名称`]})`); // 显示应用功能码及其名称
+    }else{
+        addTableRow(tbody, '应用功能码 AFN', `${userData.afn}H`); // 显示应用功能码
+    }
 
     // 添加帧序列域信息到表格
     addTableRow(tbody, '帧序列域 SEQ', `${userData.seq.hex}H (${userData.seq.decimal})`); // 显示帧序列域的十六进制值和十进制值
 
     // 获取数据识别编码 DI 的详细信息
-    const diData = jsonData[`${control.direction}`][userData.di.reverse().join(' ')];
-    addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')} (${diData["名称"]})`); // 显示数据识别编码及其名称
+    if (jsonData) {
+        const diData = jsonData[`${control.direction}`][[...userData.di].reverse().join(' ')];
+        addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')} (${diData["名称"]})`); // 显示数据识别编码及其名称
+    }else{
+        addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')}`); // 显示数据识别编码
+    }
 
     // 如果用户数据包含数据内容
     if (userData.data) {
         // 使用 parseDataByConfig 函数解析数据内容，并将其添加到表格
-        addTableRow(tbody, '数据内容', parseDataByConfig(userData.data, diData["字段"]));
+        if (jsonData) {
+            const diData = jsonData[`${control.direction}`][[...userData.di].reverse().join(' ')];
+            addTableRow(tbody, '数据内容', parseDataByConfig(userData.data, diData["字段"])); // 解析字段内容
+        }else{
+            addTableRow(tbody, '数据内容', `${userData.data.join(' ')}`); // 显示原始字段
+        }
     }
 
     // 将表体添加到表格
