@@ -309,16 +309,16 @@ function display698Result(frame, resultDiv) {
 
     // 地址域
     appendDetailSection(resultDiv, 'address', '地址域', `${frame.address.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
-    
+
     // 帧头校验
     appendDetailSection(resultDiv, 'cs', '帧头校验', `${frame.hcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
-    
+
     // 链路用户数据
     appendDetailSection(resultDiv, 'data', '链路用户数据', `${frame.userData.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
-    
+
     // 帧校验
     appendDetailSection(resultDiv, 'cs', '帧校验', `${frame.fcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
-    
+
     appendDetailSection(resultDiv, 'footer', '结束符', `${frame.end.toString(16).padStart(2, '0').toUpperCase()}H`);
 }
 
@@ -433,4 +433,70 @@ function addTableRow(tbody, label, value) {
         <td>${value}</td>
     `;
     tbody.appendChild(row);
+}
+
+function createProtocol698FrameDescription() {
+    const resultDiv = document.getElementById('result_698');
+    // 创建标题
+    const title = document.createElement('h3');
+    title.textContent = '698 协议帧格式说明';
+    title.setAttribute('class', 'title'); // 如果需要添加样式类
+
+    // 创建表格
+    const table = document.createElement('table');
+
+    // 表头
+    const tableHeader = document.createElement('tr');
+    const th1 = document.createElement('th');
+    th1.textContent = '字段';
+    const th2 = document.createElement('th');
+    th2.textContent = '说明';
+    tableHeader.appendChild(th1);
+    tableHeader.appendChild(th2);
+    table.appendChild(tableHeader);
+
+    // 表格内容
+    const rows = [
+        { field: '起始字符（68H）', description: '帧头', rowspan: 5 },
+        { field: '长度域 L', description: '' },
+        { field: '控制域 C', description: '' },
+        { field: '地址域 A', description: '' },
+        { field: '帧头校验 HCS', description: '' },
+        { field: '链路用户数据', description: '链路用户数据（应用层）' },
+        { field: '帧校验 FCS', description: '帧尾', rowspan: 2 },
+        { field: '结束字符（16H）', description: '' }
+    ];
+
+    rows.forEach(row => {
+        const tr = document.createElement('tr');
+        table.appendChild(tr);
+
+        const td1 = document.createElement('td');
+        td1.textContent = row.field;
+        tr.appendChild(td1);
+
+        if (row.description) {
+            const td2 = document.createElement('td');
+            td2.textContent = row.description;
+            if (row.rowspan) {
+                td2.setAttribute('rowspan', row.rowspan);
+            }
+            tr.appendChild(td2);
+        }
+    });
+
+    // 创建段落
+    const paragraph1 = document.createElement('p');
+    paragraph1.textContent = '帧头校验 HCS：是对帧头部分不包含起始字符和HCS本身的所有字节的校验。';
+    paragraph1.setAttribute('class', 'note');
+
+    const paragraph2 = document.createElement('p');
+    paragraph2.textContent = '帧校验 FCS：是对整帧不包含起始字符、结束字符和FCS本身的所有字节的校验。';
+    paragraph2.setAttribute('class', 'note');
+
+    // 将所有元素添加到容器
+    resultDiv.appendChild(title);
+    resultDiv.appendChild(table);
+    resultDiv.appendChild(paragraph1);
+    resultDiv.appendChild(paragraph2);
 }

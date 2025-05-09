@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8"> <!-- 设置字符编码为UTF-8 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 使网页在移动设备上自适应 -->
     <title>协议帧格式解析工具</title> <!-- 网页标题 -->
     <link rel="stylesheet" href="css/styles.css"> <!-- 引入外部CSS样式文件 -->
 </head>
+
 <body>
     <header>
         <h1>协议帧格式解析工具</h1> <!-- 主标题 -->
@@ -14,7 +16,8 @@
 
     <div class="main-container"> <!-- 主容器，用于布局 -->
         <div class="sidebar"> <!-- 侧边栏，用于切换协议 -->
-            <div class="sidebar-item active" onclick="switchSection('protocol-3762')">376.2 协议</div> <!-- 侧边栏项，点击切换到376.2协议 -->
+            <div class="sidebar-item active" onclick="switchSection('protocol-3762')">376.2 协议</div>
+            <!-- 侧边栏项，点击切换到376.2协议 -->
             <div class="sidebar-item" onclick="switchSection('protocol-645')">645 协议</div> <!-- 侧边栏项，点击切换到645协议 -->
             <div class="sidebar-item" onclick="switchSection('protocol-698')">698 协议</div> <!-- 侧边栏项，点击切换到698协议 -->
         </div>
@@ -36,39 +39,6 @@
                         <button onclick="parseHex_3762()" class="parse-btn">解析</button> <!-- 解析按钮，点击调用解析函数 -->
                     </div>
                     <div class="result-container" id="result_3762"></div> <!-- 显示解析结果的容器 -->
-
-                    <h3>376.2 协议帧格式说明</h3> <!-- 协议帧格式说明标题 -->
-                    <table>
-                        <tr>
-                            <th>字段</th> <!-- 表头：字段 -->
-                            <th>说明</th> <!-- 表头：说明 -->
-                        </tr>
-                        <tr>
-                            <td>起始字符（68H）</td>
-                            <td rowspan="2">固定报文头</td>
-                        </tr>
-                        <tr>
-                            <td>长度L</td>
-                        </tr>
-                        <tr>
-                            <td>控制域C</td>
-                            <td>控制域</td>
-                        </tr>
-                        <tr>
-                            <td>用户数据</td>
-                            <td>用户数据区</td>
-                        </tr>
-                        <tr>
-                            <td>校验和 CS</td>
-                            <td>帧校验和</td>
-                        </tr>
-                        <tr>
-                            <td>结束字符（16H）</td>
-                            <td>固定报文尾</td>
-                        </tr>
-                    </table>
-                    <p class="note">长度 L：是指帧数据的总长度，由 2 字节组成，包括用户数据长度 L1 和 6 个字节的固定长度（起始字符、长度、控制域、校验和、结束字符）。</p>
-                    <p class="note">帧校验和 CS：是控制域和用户数据区所有字节的八位位组算术和，不考虑溢出位。</p>
                 </div>
             </section>
 
@@ -85,61 +55,6 @@
                     </div>
                     <div class="result-container" id="result_645"></div> <!-- 显示解析结果的容器 -->
 
-                    <h3>645 协议帧格式说明</h3> <!-- 协议帧格式说明标题 -->
-                    <table>
-                        <tr>
-                            <th>说明</th> <!-- 表头：说明 -->
-                            <th>代码</th> <!-- 表头：代码 -->
-                        </tr>
-                        <tr>
-                            <td>帧起始符</td>
-                            <td>68H</td>
-                        </tr>
-                        <tr>
-                            <td rowspan="6">地址域</td>
-                            <td>A0</td>
-                        </tr>
-                        <tr>
-                            <td>A1</td>
-                        </tr>
-                        <tr>
-                            <td>A2</td>
-                        </tr>
-                        <tr>
-                            <td>A3</td>
-                        </tr>
-                        <tr>
-                            <td>A4</td>
-                        </tr>
-                        <tr>
-                            <td>A5</td>
-                        </tr>
-                        <tr>
-                            <td>帧起始符</td>
-                            <td>68H</td>
-                        </tr>
-                        <tr>
-                            <td>控制码</td>
-                            <td>C</td>
-                        </tr>
-                        <tr>
-                            <td>数据域长度</td>
-                            <td>L</td>
-                        </tr>
-                        <tr>
-                            <td>数据域</td>
-                            <td>DATA</td>
-                        </tr>
-                        <tr>
-                            <td>校验码</td>
-                            <td>CS</td>
-                        </tr>
-                        <tr>
-                            <td>结束符</td>
-                            <td>16H</td>
-                        </tr>
-                    </table>
-                    <p class="note">帧校验和：从第一个帧起始符开始到校验码之前的所有各字节的模 256 的和，即各字节二进制算术和，不计超过 256 的溢出值。</p>
                 </div>
             </section>
 
@@ -155,43 +70,6 @@
                         <button onclick="parseHex_698()" class="parse-btn">解析</button> <!-- 解析按钮，点击调用解析函数 -->
                     </div>
                     <div class="result-container" id="result_698"></div> <!-- 显示解析结果的容器 -->
-
-                    <h3>698 协议帧格式说明</h3> <!-- 协议帧格式说明标题 -->
-                    <table>
-                        <tr>
-                            <th>字段</th> <!-- 表头：字段 -->
-                            <th>说明</th> <!-- 表头：说明 -->
-                        </tr>
-                        <tr>
-                            <td>起始字符（68H）</td>
-                            <td rowspan="5">帧头</td>
-                        </tr>
-                        <tr>
-                            <td>长度域 L</td>
-                        </tr>
-                        <tr>
-                            <td>控制域 C</td>
-                        </tr>
-                        <tr>
-                            <td>地址域 A</td>
-                        </tr>
-                        <tr>
-                            <td>帧头校验 HCS</td>
-                        </tr>
-                        <tr>
-                            <td>链路用户数据</td>
-                            <td>链路用户数据（应用层）</td>
-                        </tr>
-                        <tr>
-                            <td>帧校验 FCS</td>
-                            <td rowspan="2">帧尾</td>
-                        </tr>
-                        <tr>
-                            <td>结束字符（16H）</td>
-                        </tr>
-                    </table>
-                    <p class="note">帧头校验 HCS：是对帧头部分不包含起始字符和HCS本身的所有字节的校验。</p>
-                    <p class="note">帧校验 FCS：是对整帧不包含起始字符、结束字符和FCS本身的所有字节的校验。</p>
                 </div>
             </section>
         </div>
@@ -241,4 +119,5 @@
     <script src="js/parser-645.js"></script> <!-- 645协议解析JS文件 -->
     <script src="js/parser-698.js"></script> <!-- 698协议解析JS文件 -->
 </body>
+
 </html>

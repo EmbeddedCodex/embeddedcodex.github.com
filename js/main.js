@@ -14,5 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // - 初始化侧边栏的点击事件
     // - 设置默认的协议解析区域
     // - 绑定解析按钮的事件监听器等
-    createProtocolFrameDescription();
+    createProtocol3762FrameDescription();
+    createProtocol645FrameDescription();
+    createProtocol698FrameDescription();
 });

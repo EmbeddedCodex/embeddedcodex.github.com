@@ -360,3 +360,69 @@ function addTableRow(tbody, label, value) {
     `;
     tbody.appendChild(row);
 }
+
+function createProtocol645FrameDescription() {
+    const resultDiv = document.getElementById('result_645');
+    // 创建标题
+    const title = document.createElement('h3');
+    title.textContent = '645 协议帧格式说明';
+    title.setAttribute('class', 'title'); // 如果需要添加样式类
+
+    // 创建表格
+    const table = document.createElement('table');
+
+    // 表头
+    const tableHeader = document.createElement('tr');
+    const th1 = document.createElement('th');
+    th1.textContent = '说明';
+    const th2 = document.createElement('th');
+    th2.textContent = '代码';
+    tableHeader.appendChild(th1);
+    tableHeader.appendChild(th2);
+    table.appendChild(tableHeader);
+
+    // 表格内容
+    const rows = [
+        { description: '帧起始符', code: '68H' },
+        { description: '地址域', code: 'A0', rowspan: 6 },
+        { description: '', code: 'A1' },
+        { description: '', code: 'A2' },
+        { description: '', code: 'A3' },
+        { description: '', code: 'A4' },
+        { description: '', code: 'A5' },
+        { description: '帧起始符', code: '68H' },
+        { description: '控制码', code: 'C' },
+        { description: '数据域长度', code: 'L' },
+        { description: '数据域', code: 'DATA' },
+        { description: '校验码', code: 'CS' },
+        { description: '结束符', code: '16H' }
+    ];
+
+    rows.forEach(row => {
+        const tr = document.createElement('tr');
+        table.appendChild(tr);
+
+        if (row.description) {
+            const td1 = document.createElement('td');
+            td1.textContent = row.description;
+            if (row.rowspan) {
+                td1.setAttribute('rowspan', row.rowspan);
+            }
+            tr.appendChild(td1);
+        }
+
+        const td2 = document.createElement('td');
+        td2.textContent = row.code;
+        tr.appendChild(td2);
+    });
+
+    // 创建段落
+    const paragraph = document.createElement('p');
+    paragraph.textContent = '帧校验和：从第一个帧起始符开始到校验码之前的所有各字节的模 256 的和，即各字节二进制算术和，不计超过 256 的溢出值。';
+    paragraph.setAttribute('class', 'note');
+
+    // 将所有元素添加到容器
+    resultDiv.appendChild(title);
+    resultDiv.appendChild(table);
+    resultDiv.appendChild(paragraph);
+}

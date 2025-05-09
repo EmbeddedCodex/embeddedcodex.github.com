@@ -590,7 +590,7 @@ function createUserDataTable(userData, control) {
     const jsonData = userData.json; // 获取用户数据的JSON配置
     if (jsonData) {
         addTableRow(tbody, '应用功能码 AFN', `${userData.afn}H (${jsonData[`名称`]})`); // 显示应用功能码及其名称
-    }else{
+    } else {
         addTableRow(tbody, '应用功能码 AFN', `${userData.afn}H`); // 显示应用功能码
     }
 
@@ -601,7 +601,7 @@ function createUserDataTable(userData, control) {
     if (jsonData) {
         const diData = jsonData[`${control.direction}`][[...userData.di].reverse().join(' ')];
         addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')} (${diData["名称"]})`); // 显示数据识别编码及其名称
-    }else{
+    } else {
         addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')}`); // 显示数据识别编码
     }
 
@@ -611,7 +611,7 @@ function createUserDataTable(userData, control) {
         if (jsonData) {
             const diData = jsonData[`${control.direction}`][[...userData.di].reverse().join(' ')];
             addTableRow(tbody, '数据内容', parseDataByConfig(userData.data, diData["字段"])); // 解析字段内容
-        }else{
+        } else {
             addTableRow(tbody, '数据内容', `${userData.data.join(' ')}`); // 显示原始字段
         }
     }
@@ -643,9 +643,8 @@ function addTableRow(tbody, label, value) {
     tbody.appendChild(row);
 }
 
-function createProtocolFrameDescription() {
+function createProtocol3762FrameDescription() {
     const resultDiv = document.getElementById('result_3762');
-
     // 创建标题
     const title = document.createElement('h3');
     title.textContent = '376.2 协议帧格式说明';
@@ -676,16 +675,20 @@ function createProtocolFrameDescription() {
 
     rows.forEach(row => {
         const tr = document.createElement('tr');
+        table.appendChild(tr);
+
         const td1 = document.createElement('td');
         td1.textContent = row.field;
-        if (row.rowspan) {
-            td1.setAttribute('rowspan', row.rowspan);
-        }
-        const td2 = document.createElement('td');
-        td2.textContent = row.description;
         tr.appendChild(td1);
-        tr.appendChild(td2);
-        table.appendChild(tr);
+
+        if (row.description) {
+            const td2 = document.createElement('td');
+            if (row.rowspan) {
+                td2.setAttribute('rowspan', row.rowspan);
+            }
+            td2.textContent = row.description;
+            tr.appendChild(td2);
+        }
     });
 
     // 创建段落
@@ -698,17 +701,8 @@ function createProtocolFrameDescription() {
     paragraph2.setAttribute('class', 'note');
 
     // 将所有元素添加到容器
-    // const container = document.createElement('div');
     resultDiv.appendChild(title);
     resultDiv.appendChild(table);
     resultDiv.appendChild(paragraph1);
     resultDiv.appendChild(paragraph2);
-
-    // return container;
 }
-
-// // 调用函数并添加到页面
-// document.addEventListener('DOMContentLoaded', () => {
-//     const content = createProtocolFrameDescription();
-//     document.body.appendChild(content);
-// });
