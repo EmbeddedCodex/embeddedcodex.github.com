@@ -25,52 +25,14 @@
         <div class="content-area"> <!-- 内容区域，显示协议解析界面 -->
             <section id="protocol-3762" class="protocol-section active"> <!-- 376.2协议内容 -->
                 <!-- 376.2协议内容保持不变 -->
-                <div class="tab-container">
-                    <div class="tab-item active" onclick="switchTab('protocol-3762', 'tab-parse')">解析</div>
-                    <div class="tab-item" onclick="switchTab('protocol-3762', 'tab-generate')">生成</div>
-                </div>
-                <div>
-                    <h2>376.2 协议解析</h2> <!-- 协议标题 -->
-                    <div class="input-group">
-                        <input type="text" id="hexInput_3762" class="hex-input"
-                            placeholder="输入十六进制字符串，例如: 68 2E 00 60 01 00 00 00 00 00 20 01 00 00 00 00 02 16 01 02 02 E8 02 00 83 08 07 10 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16 E5 16"
-                            value="68 2E 00 60 01 00 00 00 00 00 20 01 00 00 00 00 02 16 01 02 02 E8 02 00 83 08 07 10 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16 E5 16">
-                        <!-- 输入框，用于输入376.2协议的十六进制字符串 -->
-                        <button onclick="parseHex_3762()" class="parse-btn">解析</button> <!-- 解析按钮，点击调用解析函数 -->
-                    </div>
-                    <div class="result-container" id="result_3762"></div> <!-- 显示解析结果的容器 -->
-                </div>
             </section>
 
             <section id="protocol-645" class="protocol-section"> <!-- 645协议内容 -->
                 <!-- 645协议内容保持不变 -->
-                <div>
-                    <h2>645 协议解析</h2> <!-- 协议标题 -->
-                    <div class="input-group">
-                        <input type="text" id="hexInput_645" class="hex-input"
-                            placeholder="输入十六进制字符串，例如: 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16"
-                            value="68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16">
-                        <!-- 输入框，用于输入645协议的十六进制字符串 -->
-                        <button onclick="parseHex_645()" class="parse-btn">解析</button> <!-- 解析按钮，点击调用解析函数 -->
-                    </div>
-                    <div class="result-container" id="result_645"></div> <!-- 显示解析结果的容器 -->
-
-                </div>
             </section>
 
             <section id="protocol-698" class="protocol-section"> <!-- 698协议内容 -->
                 <!-- 698协议内容保持不变 -->
-                <div>
-                    <h2>698 协议解析</h2> <!-- 协议标题 -->
-                    <div class="input-group">
-                        <input type="text" id="hexInput_698" class="hex-input"
-                            placeholder="输入十六进制字符串，例如: 68 18 00 43 26 01 30 01 00 00 00 00 A1 83 EE 05 01 02 20 00 02 01 00 6B AF 16"
-                            value="68 18 00 43 26 01 30 01 00 00 00 00 A1 83 EE 05 01 02 20 00 02 01 00 6B AF 16">
-                        <!-- 输入框，用于输入698协议的十六进制字符串 -->
-                        <button onclick="parseHex_698()" class="parse-btn">解析</button> <!-- 解析按钮，点击调用解析函数 -->
-                    </div>
-                    <div class="result-container" id="result_698"></div> <!-- 显示解析结果的容器 -->
-                </div>
             </section>
         </div>
     </div>
