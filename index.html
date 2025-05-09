@@ -22,6 +22,10 @@
         <div class="content-area"> <!-- 内容区域，显示协议解析界面 -->
             <section id="protocol-3762" class="protocol-section active"> <!-- 376.2协议内容 -->
                 <!-- 376.2协议内容保持不变 -->
+                <div class="tab-container">
+                    <div class="tab-item active" onclick="switchTab('protocol-3762', 'tab-parse')">解析</div>
+                    <div class="tab-item" onclick="switchTab('protocol-3762', 'tab-generate')">生成</div>
+                </div>
                 <div>
                     <h2>376.2 协议解析</h2> <!-- 协议标题 -->
                     <div class="input-group">
@@ -209,6 +213,24 @@
             document.getElementById(sectionId).classList.add('active');
 
             // 设置选中侧边栏项的活动状态
+            event.currentTarget.classList.add('active');
+        }
+
+        function switchTab(protocolId, tabId) {
+            // 隐藏所有标签内容
+            document.querySelectorAll(`#${protocolId} .tab-content`).forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // // 取消所有标签项的活动状态
+            // document.querySelectorAll(`#${protocolId} .tab-item`).forEach(item => {
+            //     item.classList.remove('active');
+            // });
+
+            // // 显示选中的标签内容
+            // document.getElementById(`${protocolId}-${tabId}`).classList.add('active');
+
+            // 设置选中标签项的活动状态
             event.currentTarget.classList.add('active');
         }
     </script> <!-- JavaScript函数，用于切换协议内容区域 -->

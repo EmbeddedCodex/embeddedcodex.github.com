@@ -642,3 +642,73 @@ function addTableRow(tbody, label, value) {
     // 将表格行添加到表体
     tbody.appendChild(row);
 }
+
+function createProtocolFrameDescription() {
+    const resultDiv = document.getElementById('result_3762');
+
+    // 创建标题
+    const title = document.createElement('h3');
+    title.textContent = '376.2 协议帧格式说明';
+    title.setAttribute('class', 'title'); // 如果需要添加样式类
+
+    // 创建表格
+    const table = document.createElement('table');
+
+    // 表头
+    const tableHeader = document.createElement('tr');
+    const th1 = document.createElement('th');
+    th1.textContent = '字段';
+    const th2 = document.createElement('th');
+    th2.textContent = '说明';
+    tableHeader.appendChild(th1);
+    tableHeader.appendChild(th2);
+    table.appendChild(tableHeader);
+
+    // 表格内容
+    const rows = [
+        { field: '起始字符（68H）', description: '固定报文头', rowspan: 2 },
+        { field: '长度L', description: '' },
+        { field: '控制域C', description: '控制域' },
+        { field: '用户数据', description: '用户数据区' },
+        { field: '校验和 CS', description: '帧校验和' },
+        { field: '结束字符（16H）', description: '固定报文尾' }
+    ];
+
+    rows.forEach(row => {
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td');
+        td1.textContent = row.field;
+        if (row.rowspan) {
+            td1.setAttribute('rowspan', row.rowspan);
+        }
+        const td2 = document.createElement('td');
+        td2.textContent = row.description;
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        table.appendChild(tr);
+    });
+
+    // 创建段落
+    const paragraph1 = document.createElement('p');
+    paragraph1.textContent = '长度 L：是指帧数据的总长度，由 2 字节组成，包括用户数据长度 L1 和 6 个字节的固定长度（起始字符、长度、控制域、校验和、结束字符）。';
+    paragraph1.setAttribute('class', 'note');
+
+    const paragraph2 = document.createElement('p');
+    paragraph2.textContent = '帧校验和 CS：是控制域和用户数据区所有字节的八位位组算术和，不考虑溢出位。';
+    paragraph2.setAttribute('class', 'note');
+
+    // 将所有元素添加到容器
+    // const container = document.createElement('div');
+    resultDiv.appendChild(title);
+    resultDiv.appendChild(table);
+    resultDiv.appendChild(paragraph1);
+    resultDiv.appendChild(paragraph2);
+
+    // return container;
+}
+
+// // 调用函数并添加到页面
+// document.addEventListener('DOMContentLoaded', () => {
+//     const content = createProtocolFrameDescription();
+//     document.body.appendChild(content);
+// });

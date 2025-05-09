@@ -2,7 +2,7 @@
  * 基础样式 - 设置整个页面的基础外观和排版
  * 这些样式会影响页面上的所有元素，除非被更具体的规则覆盖
  */
- body {
+body {
     /* 设置字体栈，确保在不同操作系统上都有良好的显示 */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     /* 行高设置为1.6倍字体大小，提高可读性 */
@@ -214,6 +214,32 @@ th {
     display: block;
 }
 
+.tab-container {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.tab-item {
+    padding: 10px;
+    cursor: pointer;
+    margin-right: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.tab-item.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
 /* 
  * 协议特定颜色 - 用于区分不同类型的协议字段
  * 这些类可以在解析结果中使用，通过不同颜色增强可读性
@@ -221,43 +247,50 @@ th {
 
 /* 帧头颜色 */
 .header {
-    background-color: #00008B; /* 深蓝色 */
+    background-color: #00008B;
+    /* 深蓝色 */
     color: white;
 }
 
 /* 长度字段颜色 */
 .length {
-    background-color: #6B8E23; /* 橄榄绿色 */
+    background-color: #6B8E23;
+    /* 橄榄绿色 */
     color: white;
 }
 
 /* 控制字段颜色 */
 .control {
-    background-color: #FF7F50; /* 珊瑚色 */
+    background-color: #FF7F50;
+    /* 珊瑚色 */
     color: white;
 }
 
 /* 数据字段颜色 */
 .data {
-    background-color: #FFD700; /* 金色 */
+    background-color: #FFD700;
+    /* 金色 */
     color: black;
 }
 
 /* 校验和字段颜色 */
 .cs {
-    background-color: #228B22; /* 森林绿色 */
+    background-color: #228B22;
+    /* 森林绿色 */
     color: white;
 }
 
 /* 帧尾颜色 */
 .footer {
-    background-color: #800080; /* 紫色 */
+    background-color: #800080;
+    /* 紫色 */
     color: white;
 }
 
 /* 地址字段颜色 */
 .address {
-    background-color: #bda209; /* 暗金色 */
+    background-color: #bda209;
+    /* 暗金色 */
     color: white;
 }
 
@@ -266,6 +299,7 @@ th {
  * 当屏幕宽度小于等于768px时应用这些样式
  */
 @media (max-width: 768px) {
+
     /* 在小屏幕上将输入组改为垂直布局 */
     .input-group {
         flex-direction: column;
