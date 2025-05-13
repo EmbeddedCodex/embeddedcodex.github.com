@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8"> <!-- 设置字符编码为UTF-8 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 使网页在移动设备上自适应 -->
-    <title>协议帧格式解析工具</title> <!-- 网页标题 -->
+    <title>协议帧格式工具</title> <!-- 网页标题 -->
     <link rel="stylesheet" href="css/styles.css"> <!-- 引入外部CSS样式文件 -->
 </head>
 
 <body>
     <header>
-        <h1>协议帧格式解析工具</h1> <!-- 主标题 -->
-        <p>支持 DL/T 376.2、DL/T 645 和 DL/T 698 协议的帧格式解析</p> <!-- 副标题，说明支持的协议 -->
+        <h1>协议帧格式工具</h1> <!-- 主标题 -->
+        <p>支持 DL/T 376.2、DL/T 645 和 DL/T 698 协议的帧格式。</p> <!-- 副标题，说明支持的协议 -->
     </header>
 
     <div class="main-container"> <!-- 主容器，用于布局 -->
@@ -23,17 +23,31 @@
         </div>
 
         <div class="content-area"> <!-- 内容区域，显示协议解析界面 -->
-            <section id="protocol-3762" class="protocol-section active"> <!-- 376.2协议内容 -->
-                <!-- 376.2协议内容保持不变 -->
-            </section>
 
-            <section id="protocol-645" class="protocol-section"> <!-- 645协议内容 -->
-                <!-- 645协议内容保持不变 -->
-            </section>
+            <div class="tab-container">
+                <div class="tab-item" onclick="openTab(event, 'parseTab')">解析</div>
+                <div class="tab-item" onclick="openTab(event, 'generateTab')">生成</div>
+            </div>
 
-            <section id="protocol-698" class="protocol-section"> <!-- 698协议内容 -->
-                <!-- 698协议内容保持不变 -->
-            </section>
+            <div id="parseTab" class="tab-content">
+                <section id="protocol-3762" class="protocol-section active"> <!-- 376.2协议内容 -->
+                    <!-- 376.2协议内容保持不变 -->
+                </section>
+
+                <section id="protocol-645" class="protocol-section"> <!-- 645协议内容 -->
+                    <!-- 645协议内容保持不变 -->
+                </section>
+
+                <section id="protocol-698" class="protocol-section"> <!-- 698协议内容 -->
+                    <!-- 698协议内容保持不变 -->
+                </section>
+            </div>
+
+            <div id="generateTab" class="tab-content">
+                <h2>Content of Tab Generate</h2>
+                <p>This is the content of the generate tab.</p>
+            </div>
+
         </div>
     </div>
 
@@ -73,6 +87,36 @@
             // 设置选中标签项的活动状态
             event.currentTarget.classList.add('active');
         }
+
+        function openTab(event, tabName) {
+            // 获取所有标签项
+            const tabItems = document.querySelectorAll('.tab-item');
+            // 获取所有标签内容
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // 移除所有标签项的active类
+            tabItems.forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 隐藏所有标签内容
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 添加active类到当前点击的标签项
+            event.currentTarget.classList.add('active');
+
+            // 显示当前标签的内容
+            const activeTabContent = document.getElementById(tabName);
+            activeTabContent.classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstTabItem = document.querySelector('.tab-item');
+            const firstTabContentId = firstTabItem.getAttribute('onclick').match(/'([^']+)'/)[1];
+            openTab({ currentTarget: firstTabItem }, firstTabContentId);
+        });
     </script> <!-- JavaScript函数，用于切换协议内容区域 -->
 
     <!-- 原有的JS文件引用 -->
