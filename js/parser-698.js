@@ -308,70 +308,77 @@ function calculateChecksum(bytes, start, end) {
  * @param {HTMLElement} resultDiv 结果显示区域的DOM元素
  */
 function display698Result(frame, resultDiv) {
-    resultDiv.innerHTML = ''; // 清空结果显示区域
+    // 清空结果显示区域
+    resultDiv.innerHTML = '';
 
-    function hexToString(hexNum) {
-        // 确保 hexNum 是一个十六进制数
+    /**
+     * 将十六进制数转换为两个字节的字符串表示（低字节在前）
+     * @param {number} hexNum - 要转换的十六进制数 (0-0xFFFF)
+     * @returns {string} 格式为 "低字节 高字节" 的字符串
+     * @throws {Error} 如果输入不是0-0xFFFF的整数
+     */
+    const hexToBytePairString = (hexNum) => {
         if (!Number.isInteger(hexNum) || hexNum < 0 || hexNum > 0xFFFF) {
             throw new Error('Input must be an integer between 0 and 0xFFFF');
         }
+        return [
+            (hexNum & 0xFF).toString(16).padStart(2, '0').toUpperCase(),
+            ((hexNum >> 8) & 0xFF).toString(16).padStart(2, '0').toUpperCase()
+        ].join(' ');
+    };
 
-        // 将十六进制数分解成两个字节
-        const highByte = (hexNum >> 8) & 0xFF; // 高字节
-        const lowByte = hexNum & 0xFF; // 低字节
+    /**
+     * 将字节数组格式化为十六进制字符串
+     * @param {Array<number>} bytes - 字节数组
+     * @returns {string} 格式化的十六进制字符串
+     */
+    const formatBytes = (bytes) =>
+        bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
 
-        // 将每个字节转换为两位十六进制字符串
-        const highByteStr = highByte.toString(16).padStart(2, '0').toUpperCase();
-        const lowByteStr = lowByte.toString(16).padStart(2, '0').toUpperCase();
-
-        // 组合两个字节的字符串形式，中间用空格隔开
-        return `${lowByteStr} ${highByteStr}`;
-    }
+    /**
+     * 格式化单个字节为十六进制显示
+     * @param {number} byte - 要格式化的字节
+     * @returns {string} 格式化的十六进制字符串
+     */
+    const formatByte = (byte) => byte.toString(16).padStart(2, '0').toUpperCase() + 'H';
 
     // 1. 创建简洁结果行
     const summary = document.createElement('p');
     summary.classList.add('result');
     summary.innerHTML = `解析结果: 
-        <span class="header">${frame.start.toString(16).padStart(2, '0').toUpperCase()}</span>
-        <span class="length">${frame.length.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-        <span class="control">${frame.control.byte.toString(16).padStart(2, '0').toUpperCase()}</span>
-        <span class="address">${frame.address.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-        <span class="cs">${frame.hcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-        <span class="data">${frame.userData.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-        <span class="cs">${frame.fcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-        <span class="footer">${frame.end.toString(16).padStart(2, '0').toUpperCase()}</span>
+        <span class="header">${formatByte(frame.start)}</span>
+        <span class="length">${formatBytes(frame.length.bytes)}</span>
+        <span class="control">${formatByte(frame.control.byte)}</span>
+        <span class="address">${formatBytes(frame.address.bytes)}</span>
+        <span class="cs">${formatBytes(frame.hcs.bytes)}</span>
+        <span class="data">${formatBytes(frame.userData.bytes)}</span>
+        <span class="cs">${formatBytes(frame.fcs.bytes)}</span>
+        <span class="footer">${formatByte(frame.end)}</span>
     `;
     resultDiv.appendChild(summary);
 
     // 2. 显示详细解析结果
-    appendDetailSection(resultDiv, 'header', '起始符', `${frame.start.toString(16).padStart(2, '0').toUpperCase()}H`);
+    const appendDetail = (parent, className, title, content) =>
+        appendDetailSection(parent, className, title, content);
 
-    // 长度域
-    appendDetailSection(resultDiv, 'length', '长度域', `${frame.length.info} (${frame.length.info.toString(16).padStart(4, '0').toUpperCase()}H)`);
+    appendDetail(resultDiv, 'header', '起始符', formatByte(frame.start));
+    appendDetail(resultDiv, 'length', '长度域',
+        `${frame.length.info} (${frame.length.info.toString(16).padStart(4, '0').toUpperCase()}H)`);
+    appendDetail(resultDiv, 'control', '控制域', formatByte(frame.control.byte));
+    resultDiv.appendChild(create698ControlTable(frame.control));
+    appendDetail(resultDiv, 'address', '地址域', formatBytes(frame.address.bytes));
 
-    // 控制域
-    appendDetailSection(resultDiv, 'control', '控制域', `${frame.control.byte.toString(16).padStart(2, '0').toUpperCase()}H`);
-    const controlTable = create698ControlTable(frame.control);
-    resultDiv.appendChild(controlTable);
+    const hcsStatus = frame.hcs.valid ? '有效' : `无效（应为 ${hexToBytePairString(frame.hcs.calculated)}）`;
+    appendDetail(resultDiv, frame.hcs.valid ? 'cs' : 'error', '帧校验和',
+        `${formatBytes(frame.hcs.bytes)} (${hcsStatus})`);
 
-    // 地址域
-    appendDetailSection(resultDiv, 'address', '地址域', `${frame.address.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
+    appendDetail(resultDiv, 'data', '链路用户数据', formatBytes(frame.userData.bytes));
 
-    // 帧头校验
-    const checksumStatusHCS = frame.hcs.valid ? '有效' : `无效（应为 ${hexToString(frame.hcs.calculated)}）`;
-    // const checksumStatusHCS = frame.hcs.valid ? '有效' : `无效（应为 ${frame.hcs.calculated.toString(16).padStart(2, '0').toUpperCase()}）`;
-    appendDetailSection(resultDiv, frame.hcs.valid ? 'cs' : 'error', '帧校验和',
-        `${frame.hcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')} (${checksumStatusHCS})`);
+    const fcsStatus = frame.fcs.valid ? '有效' : `无效（应为 ${hexToBytePairString(frame.fcs.calculated)}）`;
+    appendDetail(resultDiv, frame.fcs.valid ? 'cs' : 'error', '帧校验和',
+        `${formatBytes(frame.fcs.bytes)} (${fcsStatus})`);
 
-    // 链路用户数据
-    appendDetailSection(resultDiv, 'data', '链路用户数据', `${frame.userData.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
-
-    // 帧校验
-    const checksumStatusFCS = frame.fcs.valid ? '有效' : `无效（应为 ${hexToString(frame.fcs.calculated)}）`;
-    appendDetailSection(resultDiv, frame.fcs.valid ? 'cs' : 'error', '帧校验和',
-        `${frame.fcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')} (${checksumStatusFCS})`);
-
-    appendDetailSection(resultDiv, 'footer', '结束符', `${frame.end.toString(16).padStart(2, '0').toUpperCase()}H`);
+    appendDetail(resultDiv, 'footer', '结束符', formatByte(frame.end));
 }
 
 // ====================== 显示辅助函数 ======================
