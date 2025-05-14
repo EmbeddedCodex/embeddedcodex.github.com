@@ -1,3 +1,17 @@
+const FCS_TABLE = new Uint16Array(256);
+
+(function generateFcs16Table() {
+    const POLY = 0x8408; // 预定义多项式常量
+
+    for (let b = 0; b < 256; b++) {
+        let v = b;
+        for (let i = 8; i-- > 0;) {  // 倒序循环减少比较次数
+            v = (v & 1) ? (v >>> 1) ^ POLY : v >>> 1;
+        }
+        FCS_TABLE[b] = v;
+    }
+})();
+
 /**
  * 解析DLT698协议帧
  * @returns {void}
@@ -94,11 +108,12 @@ function parse698Frame(bytes) {
         functionCode: get698FunctionCode(controlByte & 0x07),
     };
 
-    // 4. 解析地址域
+    // 4. 解析地址域 （SA标志）1 + （逻辑+SA）addressLength + （CA）1
     const addressType = get698ProtocolAddressType(bytes[4] >> 6);
     const addressLogical = (bytes[4] >> 4) & 0b11;
-    const addressLength = bytes[4] & 0x0F;
-    if (addressLength < 1 || addressLength > 12) {
+    const addressLength = (bytes[4] & 0x0F) + 1;
+
+    if (addressLength < 1 || addressLength > 16) {
         throw new Error(`无效地址长度: ${addressLength}`);
     }
     const addressBytes = bytes.slice(4, 4 + 1 + addressLength + 1);
@@ -106,6 +121,9 @@ function parse698Frame(bytes) {
 
     // 5. 解析帧头校验
     const hcs = bytes.slice(6 + addressLength, 6 + addressLength + 2);
+    const declaredChecksumHCS = hcs[0] + (hcs[1] << 8); // 获取声明的校验和
+    const calculatedChecksumHCS = calculateChecksum(bytes, 1, 4 + 2 + addressLength); // 计算校验和
+    const checksumValidHCS = declaredChecksumHCS === calculatedChecksumHCS; // 校验和是否有效
 
     // 6. 解析用户数据
     const userDataStart = 7 + addressLength;
@@ -114,6 +132,9 @@ function parse698Frame(bytes) {
 
     // 7. 解析帧校验
     const fcs = bytes.slice(bytes.length - 3, bytes.length - 1);
+    const declaredChecksumFCS = fcs[0] + (fcs[1] << 8); // 获取声明的校验和
+    const calculatedChecksumFCS = calculateChecksum(bytes, 1, bytes.length - 3); // 计算校验和
+    const checksumValidFCS = declaredChecksumFCS === calculatedChecksumFCS; // 校验和是否有效
 
     return {
         start: bytes[0],
@@ -134,6 +155,9 @@ function parse698Frame(bytes) {
         },
         hcs: {
             bytes: hcs,
+            declared: declaredChecksumHCS,
+            calculated: calculatedChecksumHCS,
+            valid: checksumValidHCS,
         },
         userData: {
             bytes: userDataBytes,
@@ -141,9 +165,9 @@ function parse698Frame(bytes) {
         },
         fcs: {
             bytes: fcs,
-            declared: fcs,
-            // calculated: calculatedChecksum,
-            // valid: checksumValid,
+            declared: declaredChecksumFCS,
+            calculated: calculatedChecksumFCS,
+            valid: checksumValidFCS,
         },
         end: bytes[bytes.length - 1]
     };
@@ -266,11 +290,16 @@ function parse698DataUnit(data) {
  * @returns {number} 校验和
  */
 function calculateChecksum(bytes, start, end) {
-    let sum = 0;
+    let fcs = 0xFFFF;
+
+    // 提前处理空数据情况
+    if (start >= end) return fcs;
+
     for (let i = start; i < end; i++) {
-        sum += bytes[i]; // 累加字节
+        fcs = (fcs >>> 8) ^ FCS_TABLE[(fcs ^ bytes[i]) & 0xFF];
     }
-    return sum & 0xFF; // 返回校验和（取低8位）
+
+    return fcs ^ 0xFFFF;
 }
 
 /**
@@ -280,6 +309,24 @@ function calculateChecksum(bytes, start, end) {
  */
 function display698Result(frame, resultDiv) {
     resultDiv.innerHTML = ''; // 清空结果显示区域
+
+    function hexToString(hexNum) {
+        // 确保 hexNum 是一个十六进制数
+        if (!Number.isInteger(hexNum) || hexNum < 0 || hexNum > 0xFFFF) {
+            throw new Error('Input must be an integer between 0 and 0xFFFF');
+        }
+
+        // 将十六进制数分解成两个字节
+        const highByte = (hexNum >> 8) & 0xFF; // 高字节
+        const lowByte = hexNum & 0xFF; // 低字节
+
+        // 将每个字节转换为两位十六进制字符串
+        const highByteStr = highByte.toString(16).padStart(2, '0').toUpperCase();
+        const lowByteStr = lowByte.toString(16).padStart(2, '0').toUpperCase();
+
+        // 组合两个字节的字符串形式，中间用空格隔开
+        return `${lowByteStr} ${highByteStr}`;
+    }
 
     // 1. 创建简洁结果行
     const summary = document.createElement('p');
@@ -311,13 +358,18 @@ function display698Result(frame, resultDiv) {
     appendDetailSection(resultDiv, 'address', '地址域', `${frame.address.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
 
     // 帧头校验
-    appendDetailSection(resultDiv, 'cs', '帧头校验', `${frame.hcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
+    const checksumStatusHCS = frame.hcs.valid ? '有效' : `无效（应为 ${hexToString(frame.hcs.calculated)}）`;
+    // const checksumStatusHCS = frame.hcs.valid ? '有效' : `无效（应为 ${frame.hcs.calculated.toString(16).padStart(2, '0').toUpperCase()}）`;
+    appendDetailSection(resultDiv, frame.hcs.valid ? 'cs' : 'error', '帧校验和',
+        `${frame.hcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')} (${checksumStatusHCS})`);
 
     // 链路用户数据
     appendDetailSection(resultDiv, 'data', '链路用户数据', `${frame.userData.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
 
     // 帧校验
-    appendDetailSection(resultDiv, 'cs', '帧校验', `${frame.fcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
+    const checksumStatusFCS = frame.fcs.valid ? '有效' : `无效（应为 ${hexToString(frame.fcs.calculated)}）`;
+    appendDetailSection(resultDiv, frame.fcs.valid ? 'cs' : 'error', '帧校验和',
+        `${frame.fcs.bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')} (${checksumStatusFCS})`);
 
     appendDetailSection(resultDiv, 'footer', '结束符', `${frame.end.toString(16).padStart(2, '0').toUpperCase()}H`);
 }
