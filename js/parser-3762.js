@@ -33,35 +33,6 @@ async function parseHex_3762() {
 // ====================== 工具函数 ======================
 
 /**
- * 验证十六进制输入是否有效
- * @param {string} input 十六进制字符串
- * @returns {boolean} 是否有效
- */
-function isValidHexInput(input) {
-    // 使用正则表达式验证输入是否为有效的十六进制字符串
-    return /^([0-9A-Fa-f]{2}\s?)+$/.test(input);
-}
-
-/**
- * 将十六进制字符串转换为字节数组
- * @param {string} hexStr 十六进制字符串
- * @returns {number[]|null} 字节数组或null（如果格式错误）
- */
-function hexStringToBytes(hexStr) {
-    const hexArray = hexStr.split(/\s+/); // 按空格分割字符串
-    const bytes = [];
-
-    for (const hex of hexArray) {
-        if (hex.length !== 2) return null; // 每个字节必须是两位十六进制数
-        const byte = parseInt(hex, 16); // 将十六进制字符串转换为数字
-        if (isNaN(byte)) return null; // 如果转换失败，返回null
-        bytes.push(byte); // 将字节添加到数组
-    }
-
-    return bytes;
-}
-
-/**
  * 解析376.2协议帧
  * @param {number[]} bytes 字节数组
  * @returns {object} 解析结果
@@ -100,7 +71,7 @@ async function parse3762Frame(bytes) {
 
     // 5. 解析用户数据
     const userDataByte = bytes.slice(4, frameLenInfo - 2); // 获取用户数据部分
-    const userDataInfo = parseUserData(userDataByte, controlByte); // 解析用户数据
+    const userDataInfo = parse3762UserData(userDataByte, controlByte); // 解析用户数据
 
     // 补充 JSON 数据
     const file_func = `${userDataInfo.di[3]}_${userDataInfo.di[1]}`; // 构造文件名
@@ -142,27 +113,12 @@ async function parse3762Frame(bytes) {
 }
 
 /**
- * 计算校验和
- * @param {number[]} bytes 字节数组
- * @param {number} start 起始索引
- * @param {number} end 结束索引
- * @returns {number} 校验和
- */
-function calculateChecksum(bytes, start, end) {
-    let sum = 0;
-    for (let i = start; i < end; i++) {
-        sum += bytes[i]; // 累加字节
-    }
-    return sum & 0xFF; // 返回校验和（取低8位）
-}
-
-/**
  * 解析用户数据
  * @param {number[]} userData 用户数据字节数组
  * @param {number} controlByte 控制域字节
  * @returns {object} 解析结果
  */
-function parseUserData(userData, controlByte) {
+function parse3762UserData(userData, controlByte) {
     let offset = 0;
     const result = {};
 
@@ -240,12 +196,12 @@ function display3762Result(frame, resultDiv) {
 
     // 控制域详情
     appendDetailSection(resultDiv, 'control', '控制域', `${frame.control.byte.toString(16).padStart(2, '0').toUpperCase()}H`);
-    const controlTable = createControlTable(frame.control); // 创建控制域的详细表格
+    const controlTable = create3762ControlTable(frame.control); // 创建控制域的详细表格
     resultDiv.appendChild(controlTable);
 
     // 用户数据详情
     appendDetailSection(resultDiv, 'data', '用户数据', `${frame.userData.byte.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
-    const userDataTable = createUserDataTable(frame.userData.info, frame.control.info); // 创建用户数据的详细表格
+    const userDataTable = create3762UserDataTable(frame.userData.info, frame.control.info); // 创建用户数据的详细表格
     resultDiv.appendChild(userDataTable);
 
     // 校验和
@@ -259,33 +215,11 @@ function display3762Result(frame, resultDiv) {
 // ====================== 显示辅助函数 ======================
 
 /**
- * 在结果显示区域追加详细解析结果
- * @param {HTMLElement} container 结果显示区域的DOM元素
- * @param {string} className 类名，用于添加样式
- * @param {string} title 标题，用于标识该部分的内容
- * @param {string} content 内容，显示该部分的详细信息
- */
-function appendDetailSection(container, className, title, content) {
-    // 创建一个新的段落元素，用于显示标题和内容
-    const element = document.createElement('p');
-
-    // 为段落元素添加指定的类名，以便通过CSS进行样式控制
-    element.classList.add(className);
-
-    // 设置段落元素的HTML内容，包含标题和内容
-    // 使用 <strong> 标签加粗标题，使其更突出
-    element.innerHTML = `<strong>${title}:</strong> ${content}`;
-
-    // 将创建的段落元素添加到结果显示区域
-    container.appendChild(element);
-}
-
-/**
  * 创建控制域的详细表格
  * @param {object} control 控制域信息对象，包含控制域字节及其解析后的详细信息
  * @returns {HTMLTableElement} 返回一个HTML表格元素，显示控制域的详细信息
  */
-function createControlTable(control) {
+function create3762ControlTable(control) {
     // 创建一个表格元素，用于显示控制域的详细信息
     const table = document.createElement('table');
 
@@ -332,7 +266,7 @@ function createControlTable(control) {
  * @param {string} desc 字段描述，包含位的名称和位置信息，例如 "任务响应标识(7)" 或 "任务优先级(0-3)"
  * @returns {Object} 返回一个对象，键为位名称，值为包含起始位、结束位和长度的配置对象
  */
-function parseBitSpecification(desc) {
+function parse3762BitSpecification(desc) {
     const bitSpec = {}; // 创建一个空对象，用于存储位的配置信息
 
     // 匹配所有位说明，例如 "任务响应标识(7)"，"任务优先级(0-3)"
@@ -373,7 +307,7 @@ function parseBitSpecification(desc) {
  * @param {string} desc 字段描述，包含位的名称和位置信息，例如 "任务响应标识(7)" 或 "任务优先级(0-3)"
  * @returns {Object} 返回一个对象，包含十六进制值、二进制值、位详细信息和整数值
  */
-function processBitField(hexPart, desc) {
+function process3762BitField(hexPart, desc) {
     // 将十六进制数据数组转换为字符串，例如 ["A1"] 转换为 "A1"
     const hexStr = hexPart.join(' ');
 
@@ -383,8 +317,8 @@ function processBitField(hexPart, desc) {
     // 将整数值转换为8位二进制字符串，例如 0xA1 转换为 "10100001"
     const bits = byteValue.toString(2).padStart(8, '0');
 
-    // 调用 parseBitSpecification 函数解析字段描述，获取位的配置信息
-    const bitSpec = parseBitSpecification(desc);
+    // 调用 parse3762BitSpecification 函数解析字段描述，获取位的配置信息
+    const bitSpec = parse3762BitSpecification(desc);
 
     // 创建一个对象，用于存储位的详细信息
     const bitDetails = {};
@@ -424,7 +358,7 @@ function processBitField(hexPart, desc) {
  * @param {Array<Object>} config 解析配置数组，每个配置项定义了数据的类型、长度和描述
  * @returns {string} 格式化后的解析结果字符串（HTML格式），包含字段名称、值和详细信息
  */
-function parseDataByConfig(dataArray, config) {
+function parse3762DataByConfig(dataArray, config) {
     // 输入验证：确保输入的 dataArray 是数组
     if (!Array.isArray(dataArray)) {
         throw new Error('数据输入必须是数组');
@@ -509,7 +443,7 @@ function parseDataByConfig(dataArray, config) {
                 };
             } else if (type === 'BS') {
                 // 位字段类型
-                const byteValue = processBitField(hexPart, fieldDesc); // 调用 processBitField 解析位字段
+                const byteValue = process3762BitField(hexPart, fieldDesc); // 调用 process3762BitField 解析位字段
                 value = {
                     hexStr: `${byteValue.hexValue}H (二进制: ${byteValue.binaryValue})`, // 显示十六进制值和二进制值
                     bitDetails: byteValue.bitDetails // 位详细信息
@@ -571,7 +505,7 @@ function parseDataByConfig(dataArray, config) {
  * @param {object} control 控制域信息对象，包含控制域的解析结果
  * @returns {HTMLTableElement} 返回一个HTML表格元素，显示用户数据的详细信息
  */
-function createUserDataTable(userData, control) {
+function create3762UserDataTable(userData, control) {
     // 创建一个表格元素，用于显示用户数据的详细信息
     const table = document.createElement('table');
     const tbody = document.createElement('tbody'); // 创建表体部分
@@ -601,7 +535,7 @@ function createUserDataTable(userData, control) {
 
     // 添加数据内容到表格（如果存在）
     if (userData.data) {
-        const dataInfo = jsonData && diData ? parseDataByConfig(userData.data, diData["字段"]) : userData.data.join(' ');
+        const dataInfo = jsonData && diData ? parse3762DataByConfig(userData.data, diData["字段"]) : userData.data.join(' ');
         addTableRow(tbody, '数据内容', dataInfo);
     }
 
@@ -610,26 +544,6 @@ function createUserDataTable(userData, control) {
 
     // 返回创建好的表格元素
     return table;
-}
-
-/**
- * 向表格中添加行
- * @param {HTMLElement} tbody 表体元素
- * @param {string} label 行的标签（例如字段名称）
- * @param {string} value 行的值（例如字段的详细信息）
- */
-function addTableRow(tbody, label, value) {
-    // 创建一个新的表格行
-    const row = document.createElement('tr');
-
-    // 设置表格行的内容
-    row.innerHTML = `
-        <td>${label}</td> <!-- 字段名称 -->
-        <td>${value}</td> <!-- 字段的详细信息 -->
-    `;
-
-    // 将表格行添加到表体
-    tbody.appendChild(row);
 }
 
 function createProtocol3762FrameDescription() {

@@ -33,36 +33,6 @@ function parseHex_645() {
 // ====================== 工具函数 ======================
 
 /**
- * 验证十六进制输入是否有效
- * @param {string} input 十六进制字符串
- * @returns {boolean} 是否有效
- */
-function isValidHexInput(input) {
-    // 使用正则表达式验证输入是否为有效的十六进制字符串
-    // 格式要求：每两个字符表示一个字节，字节之间可以有空格
-    return /^([0-9A-Fa-f]{2}\s?)+$/.test(input);
-}
-
-/**
- * 将十六进制字符串转换为字节数组
- * @param {string} hexStr 十六进制字符串
- * @returns {number[]|null} 字节数组或null（如果格式错误）
- */
-function hexStringToBytes(hexStr) {
-    const hexArray = hexStr.split(/\s+/); // 按空格分割字符串
-    const bytes = [];
-
-    for (const hex of hexArray) {
-        if (hex.length !== 2) return null; // 每个字节必须是两位十六进制数
-        const byte = parseInt(hex, 16); // 将十六进制字符串转换为数字
-        if (isNaN(byte)) return null; // 如果转换失败，返回null
-        bytes.push(byte); // 将字节添加到数组
-    }
-
-    return bytes;
-}
-
-/**
  * 解析DLT645协议帧
  * @param {number[]} bytes 字节数组
  * @returns {object} 解析结果
@@ -175,21 +145,6 @@ function get645FunctionCode(code) {
 }
 
 /**
- * 计算校验和
- * @param {number[]} bytes 字节数组
- * @param {number} start 起始索引
- * @param {number} end 结束索引
- * @returns {number} 校验和
- */
-function calculateChecksum(bytes, start, end) {
-    let sum = 0;
-    for (let i = start; i < end; i++) {
-        sum += bytes[i]; // 累加字节
-    }
-    return sum & 0xFF; // 返回校验和（取低8位）
-}
-
-/**
  * 显示解析结果
  * @param {object} frame 解析结果对象
  * @param {HTMLElement} resultDiv 结果显示区域的DOM元素
@@ -245,20 +200,6 @@ function display645Result(frame, resultDiv) {
 }
 
 // ====================== 显示辅助函数 ======================
-
-/**
- * 在结果显示区域追加详细解析结果
- * @param {HTMLElement} container 结果显示区域的DOM元素
- * @param {string} className 类名，用于添加样式
- * @param {string} title 标题，用于标识该部分的内容
- * @param {string} content 内容，显示该部分的详细信息
- */
-function appendDetailSection(container, className, title, content) {
-    const element = document.createElement('p');
-    element.classList.add(className);
-    element.innerHTML = `<strong>${title}:</strong> ${content}`;
-    container.appendChild(element);
-}
 
 /**
  * 创建控制域的详细表格
@@ -344,21 +285,6 @@ function create645DITable(di) {
 
     // 返回创建好的表格元素
     return table;
-}
-
-/**
- * 向表格中添加行
- * @param {HTMLElement} tbody 表体元素
- * @param {string} label 行的标签（例如字段名称）
- * @param {string} value 行的值（例如字段的详细信息）
- */
-function addTableRow(tbody, label, value) {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-        <td>${label}</td>
-        <td>${value}</td>
-    `;
-    tbody.appendChild(row);
 }
 
 function createProtocol645FrameDescription() {

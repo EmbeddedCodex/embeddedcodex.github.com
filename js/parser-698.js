@@ -1,22 +1,3 @@
-const FCS_TABLE = new Uint16Array(256);
-
-(function generateFcs16Table() {
-    const POLY = 0x8408; // 预定义多项式常量
-
-    for (let b = 0; b < 256; b++) {
-        let v = b;
-        for (let i = 8; i-- > 0;) {  // 倒序循环减少比较次数
-            v = (v & 1) ? (v >>> 1) ^ POLY : v >>> 1;
-        }
-        FCS_TABLE[b] = v;
-    }
-})();
-
-
-function hexDumpSimple(bytes) {
-    return bytes.map(b => b.toString(16).padStart(2, '0')).join(' ');
-}
-
 /**
  * 解析DLT698协议帧
  * @returns {void}
@@ -49,36 +30,6 @@ function parseHex_698() {
     }
 }
 // ====================== 工具函数 ======================
-
-/**
- * 验证十六进制输入是否有效
- * @param {string} input 十六进制字符串
- * @returns {boolean} 是否有效
- */
-function isValidHexInput(input) {
-    // 使用正则表达式验证输入是否为有效的十六进制字符串
-    // 格式要求：每两个字符表示一个字节，字节之间可以有空格
-    return /^([0-9A-Fa-f]{2}\s?)+$/.test(input);
-}
-
-/**
- * 将十六进制字符串转换为字节数组
- * @param {string} hexStr 十六进制字符串
- * @returns {number[]|null} 字节数组或null（如果格式错误）
- */
-function hexStringToBytes(hexStr) {
-    const hexArray = hexStr.split(/\s+/); // 按空格分割字符串
-    const bytes = [];
-
-    for (const hex of hexArray) {
-        if (hex.length !== 2) return null; // 每个字节必须是两位十六进制数
-        const byte = parseInt(hex, 16); // 将十六进制字符串转换为数字
-        if (isNaN(byte)) return null; // 如果转换失败，返回null
-        bytes.push(byte); // 将字节添加到数组
-    }
-
-    return bytes;
-}
 
 /**
  * 解析DLT698协议帧
@@ -151,7 +102,7 @@ function parse698Frame(originalBytes) {
     // 5. 解析帧头校验
     // 计算HCS校验和（从起始符后到HCS前的所有字节）
     const hcsCheckBytes = originalBytes.slice(1, originalBytes.length - bytes.length);
-    const calculatedChecksumHCS = calculateChecksum(hcsCheckBytes, 0, hcsCheckBytes.length);
+    const calculatedChecksumHCS = calculate698Checksum(hcsCheckBytes, 0, hcsCheckBytes.length);
 
     const hcs = popBytes(2);
     const declaredChecksumHCS = hcs[0] + (hcs[1] << 8);
@@ -173,7 +124,7 @@ function parse698Frame(originalBytes) {
 
     // 计算FCS校验和（从起始符后到FCS前的所有字节）
     const fcsCheckBytes = originalBytes.slice(1, originalBytes.length - 3);
-    const calculatedChecksumFCS = calculateChecksum(fcsCheckBytes, 0, fcsCheckBytes.length);
+    const calculatedChecksumFCS = calculate698Checksum(fcsCheckBytes, 0, fcsCheckBytes.length);
     const checksumValidFCS = declaredChecksumFCS === calculatedChecksumFCS;
 
     // if (!checksumValidFCS) {
@@ -339,26 +290,6 @@ function parse698DataUnit(data) {
 }
 
 /**
- * 计算校验和
- * @param {number[]} bytes 字节数组
- * @param {number} start 起始索引
- * @param {number} end 结束索引
- * @returns {number} 校验和
- */
-function calculateChecksum(bytes, start, end) {
-    let fcs = 0xFFFF;
-
-    // 提前处理空数据情况
-    if (start >= end) return fcs;
-
-    for (let i = start; i < end; i++) {
-        fcs = (fcs >>> 8) ^ FCS_TABLE[(fcs ^ bytes[i]) & 0xFF];
-    }
-
-    return fcs ^ 0xFFFF;
-}
-
-/**
  * 显示解析结果
  * @param {object} frame 解析结果对象
  * @param {HTMLElement} resultDiv 结果显示区域的DOM元素
@@ -440,20 +371,6 @@ function display698Result(frame, resultDiv) {
 // ====================== 显示辅助函数 ======================
 
 /**
- * 在结果显示区域追加详细解析结果
- * @param {HTMLElement} container 结果显示区域的DOM元素
- * @param {string} className 类名，用于添加样式
- * @param {string} title 标题，用于标识该部分的内容
- * @param {string} content 内容，显示该部分的详细信息
- */
-function appendDetailSection(container, className, title, content) {
-    const element = document.createElement('p');
-    element.classList.add(className);
-    element.innerHTML = `<strong>${title}:</strong> ${content}`;
-    container.appendChild(element);
-}
-
-/**
  * 创建DLT698控制域的详细表格
  * @param {object} control 控制域信息对象
  * @returns {HTMLTableElement} 控制域表格
@@ -533,21 +450,6 @@ function create698DataUnitTable(dataUnit) {
 
     table.appendChild(tbody);
     return table;
-}
-
-/**
- * 向表格中添加行
- * @param {HTMLElement} tbody 表体元素
- * @param {string} label 行的标签（例如字段名称）
- * @param {string} value 行的值（例如字段的详细信息）
- */
-function addTableRow(tbody, label, value) {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-        <td>${label}</td>
-        <td>${value}</td>
-    `;
-    tbody.appendChild(row);
 }
 
 function createProtocol698FrameDescription() {
