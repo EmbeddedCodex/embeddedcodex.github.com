@@ -600,7 +600,11 @@ function createUserDataTable(userData, control) {
     // 获取数据识别编码 DI 的详细信息
     if (jsonData) {
         const diData = jsonData[`${control.direction}`][[...userData.di].reverse().join(' ')];
-        addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')} (${diData["名称"]})`); // 显示数据识别编码及其名称
+        if (diData) {
+            addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')} (${diData["名称"]})`); // 显示数据识别编码及其名称
+        } else {
+            addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')} (未知)`); // 显示数据识别编码及其名称
+        }
     } else {
         addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')}`); // 显示数据识别编码
     }
@@ -610,7 +614,11 @@ function createUserDataTable(userData, control) {
         // 使用 parseDataByConfig 函数解析数据内容，并将其添加到表格
         if (jsonData) {
             const diData = jsonData[`${control.direction}`][[...userData.di].reverse().join(' ')];
-            addTableRow(tbody, '数据内容', parseDataByConfig(userData.data, diData["字段"])); // 解析字段内容
+            if (diData) {
+                addTableRow(tbody, '数据内容', parseDataByConfig(userData.data, diData["字段"])); // 解析字段内容
+            } else {
+                addTableRow(tbody, '数据内容', `${userData.data.join(' ')}`); // 显示原始字段
+            }
         } else {
             addTableRow(tbody, '数据内容', `${userData.data.join(' ')}`); // 显示原始字段
         }
