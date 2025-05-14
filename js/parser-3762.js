@@ -576,52 +576,33 @@ function createUserDataTable(userData, control) {
     const table = document.createElement('table');
     const tbody = document.createElement('tbody'); // 创建表体部分
 
-    // 如果用户数据包含地址域
+    // 添加地址域信息到表格（如果存在）
     if (userData.address) {
-        // 添加地址域信息到表格
-        addTableRow(tbody, '地址域 A', `
+        const addressInfo = `
             源地址: ${userData.address.source.join(' ')} ( ${[...userData.address.source].reverse().join('')} )<br>
             目的地址: ${userData.address.destination.join(' ')} ( ${[...userData.address.destination].reverse().join('')} )
-        `);
+        `;
+        addTableRow(tbody, '地址域 A', addressInfo);
     }
 
     // 添加应用功能码信息到表格
-    console.log('rrr', userData.json); // 打印用户数据的JSON配置（用于调试）
     const jsonData = userData.json; // 获取用户数据的JSON配置
-    if (jsonData) {
-        addTableRow(tbody, '应用功能码 AFN', `${userData.afn}H (${jsonData[`名称`]})`); // 显示应用功能码及其名称
-    } else {
-        addTableRow(tbody, '应用功能码 AFN', `${userData.afn}H`); // 显示应用功能码
-    }
+    const afnInfo = jsonData ? `${userData.afn}H (${jsonData[`名称`]})` : `${userData.afn}H`;
+    addTableRow(tbody, '应用功能码 AFN', afnInfo);
 
     // 添加帧序列域信息到表格
-    addTableRow(tbody, '帧序列域 SEQ', `${userData.seq.hex}H (${userData.seq.decimal})`); // 显示帧序列域的十六进制值和十进制值
+    const seqInfo = `${userData.seq.hex}H (${userData.seq.decimal})`;
+    addTableRow(tbody, '帧序列域 SEQ', seqInfo);
 
     // 获取数据识别编码 DI 的详细信息
-    if (jsonData) {
-        const diData = jsonData[`${control.direction}`][[...userData.di].reverse().join(' ')];
-        if (diData) {
-            addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')} (${diData["名称"]})`); // 显示数据识别编码及其名称
-        } else {
-            addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')} (未知)`); // 显示数据识别编码及其名称
-        }
-    } else {
-        addTableRow(tbody, '数据识别编码 DI', `${userData.di.join(' ')}`); // 显示数据识别编码
-    }
+    const diData = jsonData ? jsonData[`${control.direction}`][[...userData.di].reverse().join(' ')] : null;
+    const diInfo = diData ? `${userData.di.join(' ')} (${diData["名称"]})` : `${userData.di.join(' ')} (未知)`;
+    addTableRow(tbody, '数据识别编码 DI', diInfo);
 
-    // 如果用户数据包含数据内容
+    // 添加数据内容到表格（如果存在）
     if (userData.data) {
-        // 使用 parseDataByConfig 函数解析数据内容，并将其添加到表格
-        if (jsonData) {
-            const diData = jsonData[`${control.direction}`][[...userData.di].reverse().join(' ')];
-            if (diData) {
-                addTableRow(tbody, '数据内容', parseDataByConfig(userData.data, diData["字段"])); // 解析字段内容
-            } else {
-                addTableRow(tbody, '数据内容', `${userData.data.join(' ')}`); // 显示原始字段
-            }
-        } else {
-            addTableRow(tbody, '数据内容', `${userData.data.join(' ')}`); // 显示原始字段
-        }
+        const dataInfo = jsonData && diData ? parseDataByConfig(userData.data, diData["字段"]) : userData.data.join(' ');
+        addTableRow(tbody, '数据内容', dataInfo);
     }
 
     // 将表体添加到表格
