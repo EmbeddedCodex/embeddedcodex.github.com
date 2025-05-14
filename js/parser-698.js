@@ -12,6 +12,11 @@ const FCS_TABLE = new Uint16Array(256);
     }
 })();
 
+
+function hexDumpSimple(bytes) {
+    return bytes.map(b => b.toString(16).padStart(2, '0')).join(' ');
+}
+
 /**
  * 解析DLT698协议帧
  * @returns {void}
@@ -77,28 +82,48 @@ function hexStringToBytes(hexStr) {
 
 /**
  * 解析DLT698协议帧
- * @param {number[]} bytes 字节数组
+ * @param {number[]} originalBytes 字节数组
  * @returns {object} 解析结果
  */
-function parse698Frame(bytes) {
+function parse698Frame(originalBytes) {
+    // 创建字节数组的副本以避免修改原始数据
+    const bytes = [...originalBytes];
+
+    // 辅助函数：弹出指定数量的字节
+    const popBytes = (count) => {
+        if (bytes.length < count) {
+            throw new Error(`需要弹出${count}字节，但只剩${bytes.length}字节`);
+        }
+        return bytes.splice(0, count);
+    };
+
+    // 辅助函数：弹出一个字节
+    const popByte = () => popBytes(1)[0];
+
     // 1. 基本帧结构验证
-    if (bytes.length < 12) {
-        throw new Error("帧长度过短");
+    const MIN_FRAME_LENGTH = 12;
+    if (bytes.length < MIN_FRAME_LENGTH) {
+        throw new Error(`帧长度过短，至少需要${MIN_FRAME_LENGTH}字节，实际收到${bytes.length}字节`);
     }
 
-    if (bytes[0] !== 0x68 || bytes[bytes.length - 1] !== 0x16) {
-        throw new Error("帧起始/结束符无效");
+    // 验证起始字节
+    const startByte = popByte();
+    const START_BYTE = 0x68;
+    if (startByte !== START_BYTE) {
+        throw new Error(`帧起始符无效，应为0x${START_BYTE.toString(16)}，实际为0x${startByte.toString(16)}`);
     }
 
     // 2. 解析长度域
-    const frameLenBytes = bytes.slice(1, 1 + 2); // 获取长度字段的字节
-    const frameLenInfo = bytes[1] + (bytes[2] << 8); // 计算长度值
-    if (frameLenInfo + 2 !== bytes.length) {
-        throw new Error(`长度不匹配: 声明长度=${frameLenInfo}, 实际长度=${bytes.length - 2}`);
+    const frameLenBytes = popBytes(2);
+    const frameLenInfo = frameLenBytes[0] + (frameLenBytes[1] << 8);
+
+    // 验证长度匹配（+2 因为起始字符和结束字符不算在长度值内）
+    if (frameLenInfo + 2 !== originalBytes.length) {
+        throw new Error(`长度不匹配: 声明长度=${frameLenInfo}，实际长度=${originalBytes.length - 2}`);
     }
 
     // 3. 解析控制域
-    const controlByte = bytes[3];
+    const controlByte = popByte();
     const controlInfo = {
         dir: (controlByte & 0x80) ? '服务器→客户端' : '客户端→服务器',
         prm: (controlByte & 0x40) ? '启动站' : '从动站',
@@ -109,35 +134,66 @@ function parse698Frame(bytes) {
     };
 
     // 4. 解析地址域 （SA标志）1 + （逻辑+SA）addressLength + （CA）1
-    const addressType = get698ProtocolAddressType(bytes[4] >> 6);
-    const addressLogical = (bytes[4] >> 4) & 0b11;
-    const addressLength = (bytes[4] & 0x0F) + 1;
+    const addressHeader = popByte();
+    const addressType = get698ProtocolAddressType(addressHeader >> 6);
+    const addressLogical = (addressHeader >> 4) & 0b11;
+    const addressLength = (addressHeader & 0x0F) + 1;
 
-    if (addressLength < 1 || addressLength > 16) {
-        throw new Error(`无效地址长度: ${addressLength}`);
+    const MAX_ADDRESS_LENGTH = 16;
+    if (addressLength < 1 || addressLength > MAX_ADDRESS_LENGTH) {
+        throw new Error(`无效地址长度: ${addressLength}，应在1-${MAX_ADDRESS_LENGTH}范围内`);
     }
-    const addressBytes = bytes.slice(4, 4 + 1 + addressLength + 1);
-    const addressBytesSA = addressBytes.slice(1, addressBytes.length - 1);
+
+    // 弹出地址域字节 (SA标志 + 地址 + CA)
+    const addressBytes = [addressHeader, ...popBytes(addressLength + 1)];
+    const addressBytesSA = addressBytes.slice(1, -1);
 
     // 5. 解析帧头校验
-    const hcs = bytes.slice(6 + addressLength, 6 + addressLength + 2);
-    const declaredChecksumHCS = hcs[0] + (hcs[1] << 8); // 获取声明的校验和
-    const calculatedChecksumHCS = calculateChecksum(bytes, 1, 4 + 2 + addressLength); // 计算校验和
-    const checksumValidHCS = declaredChecksumHCS === calculatedChecksumHCS; // 校验和是否有效
+    // 计算HCS校验和（从起始符后到HCS前的所有字节）
+    const hcsCheckBytes = originalBytes.slice(1, originalBytes.length - bytes.length);
+    const calculatedChecksumHCS = calculateChecksum(hcsCheckBytes, 0, hcsCheckBytes.length);
+
+    const hcs = popBytes(2);
+    const declaredChecksumHCS = hcs[0] + (hcs[1] << 8);
+    const checksumValidHCS = declaredChecksumHCS === calculatedChecksumHCS;
+
+    // if (!checksumValidHCS) {
+    //     throw new Error(`帧头校验失败，声明值: 0x${declaredChecksumHCS.toString(16)}，计算值: 0x${calculatedChecksumHCS.toString(16)}`);
+    // }
 
     // 6. 解析用户数据
-    const userDataStart = 7 + addressLength;
-    const userDataBytes = bytes.slice(userDataStart, bytes.length - 2);
+    // 用户数据长度 = 剩余字节 - FCS(2) - 结束符(1)
+    const userDataLength = bytes.length - 3;
+    const userDataBytes = popBytes(userDataLength);
     const userDataInfo = parse698DataUnit(userDataBytes);
 
     // 7. 解析帧校验
-    const fcs = bytes.slice(bytes.length - 3, bytes.length - 1);
-    const declaredChecksumFCS = fcs[0] + (fcs[1] << 8); // 获取声明的校验和
-    const calculatedChecksumFCS = calculateChecksum(bytes, 1, bytes.length - 3); // 计算校验和
-    const checksumValidFCS = declaredChecksumFCS === calculatedChecksumFCS; // 校验和是否有效
+    const fcs = popBytes(2);
+    const declaredChecksumFCS = fcs[0] + (fcs[1] << 8);
+
+    // 计算FCS校验和（从起始符后到FCS前的所有字节）
+    const fcsCheckBytes = originalBytes.slice(1, originalBytes.length - 3);
+    const calculatedChecksumFCS = calculateChecksum(fcsCheckBytes, 0, fcsCheckBytes.length);
+    const checksumValidFCS = declaredChecksumFCS === calculatedChecksumFCS;
+
+    // if (!checksumValidFCS) {
+    //     throw new Error(`帧校验失败，声明值: 0x${declaredChecksumFCS.toString(16)}，计算值: 0x${calculatedChecksumFCS.toString(16)}`);
+    // }
+
+    // 验证结束字节
+    const endByte = popByte();
+    const END_BYTE = 0x16;
+    if (endByte !== END_BYTE) {
+        throw new Error(`帧结束符无效，应为0x${END_BYTE.toString(16)}，实际为0x${endByte.toString(16)}`);
+    }
+
+    // 验证所有字节已处理
+    if (bytes.length > 0) {
+        throw new Error(`解析完成后仍有${bytes.length}字节未处理`);
+    }
 
     return {
-        start: bytes[0],
+        start: startByte,
         length: {
             bytes: frameLenBytes,
             info: frameLenInfo,
@@ -169,7 +225,7 @@ function parse698Frame(bytes) {
             calculated: calculatedChecksumFCS,
             valid: checksumValidFCS,
         },
-        end: bytes[bytes.length - 1]
+        end: endByte
     };
 }
 
@@ -340,7 +396,7 @@ function display698Result(frame, resultDiv) {
      * @param {number} byte - 要格式化的字节
      * @returns {string} 格式化的十六进制字符串
      */
-    const formatByte = (byte) => byte.toString(16).padStart(2, '0').toUpperCase() + 'H';
+    const formatByte = (byte) => byte.toString(16).padStart(2, '0').toUpperCase();
 
     // 1. 创建简洁结果行
     const summary = document.createElement('p');
@@ -361,10 +417,10 @@ function display698Result(frame, resultDiv) {
     const appendDetail = (parent, className, title, content) =>
         appendDetailSection(parent, className, title, content);
 
-    appendDetail(resultDiv, 'header', '起始符', formatByte(frame.start));
+    appendDetail(resultDiv, 'header', '起始符', formatByte(frame.start) + 'H');
     appendDetail(resultDiv, 'length', '长度域',
         `${frame.length.info} (${frame.length.info.toString(16).padStart(4, '0').toUpperCase()}H)`);
-    appendDetail(resultDiv, 'control', '控制域', formatByte(frame.control.byte));
+    appendDetail(resultDiv, 'control', '控制域', formatByte(frame.control.byte) + 'H');
     resultDiv.appendChild(create698ControlTable(frame.control));
     appendDetail(resultDiv, 'address', '地址域', formatBytes(frame.address.bytes));
 
@@ -378,7 +434,7 @@ function display698Result(frame, resultDiv) {
     appendDetail(resultDiv, frame.fcs.valid ? 'cs' : 'error', '帧校验和',
         `${formatBytes(frame.fcs.bytes)} (${fcsStatus})`);
 
-    appendDetail(resultDiv, 'footer', '结束符', formatByte(frame.end));
+    appendDetail(resultDiv, 'footer', '结束符', formatByte(frame.end) + 'H');
 }
 
 // ====================== 显示辅助函数 ======================
