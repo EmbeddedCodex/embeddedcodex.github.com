@@ -141,7 +141,7 @@ function get645FunctionCode(code) {
         0b11010: '电表清零',
         0b11011: '事件清零',
     };
-    return codes[code] || `未知功能码 (0x${code.toString(16).padStart(2, '0').toUpperCase()})`;
+    return codes[code] || `未知功能码 (0x${formatByte(code)})`;
 }
 
 /**
@@ -156,47 +156,47 @@ function display645Result(frame, resultDiv) {
     const summary = document.createElement('p');
     summary.classList.add('result');
     summary.innerHTML = `解析结果: 
-        <span class="header">${frame.start.toString(16).padStart(2, '0').toUpperCase()}</span>
-        <span class="address">${frame.address.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-        <span class="header">${frame.start2.toString(16).padStart(2, '0').toUpperCase()}</span>
-        <span class="control">${frame.control.byte.toString(16).padStart(2, '0').toUpperCase()}</span>
-        <span class="length">${frame.dataLength.toString(16).padStart(2, '0').toUpperCase()}</span>
-        <span class="data">${frame.data.raw.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>
-        <span class="cs">${frame.checksum.declared.toString(16).padStart(2, '0').toUpperCase()}</span>
-        <span class="footer">${frame.end.toString(16).padStart(2, '0').toUpperCase()}</span>
+        <span class="header">${formatByte(frame.start)}</span>
+        <span class="address">${formatBytes(frame.address)}</span>
+        <span class="header">${formatByte(frame.start2)}</span>
+        <span class="control">${formatByte(frame.control.byte)}</span>
+        <span class="length">${formatByte(frame.dataLength)}</span>
+        <span class="data">${formatBytes(frame.data.raw)}</span>
+        <span class="cs">${formatByte(frame.checksum.declared)}</span>
+        <span class="footer">${formatByte(frame.end)}</span>
     `;
     resultDiv.appendChild(summary);
 
     // 2. 显示详细解析结果
-    appendDetailSection(resultDiv, 'header', '起始符1', `${frame.start.toString(16).padStart(2, '0').toUpperCase()}H`);
+    appendDetailSection(resultDiv, 'header', '起始符1', `${formatByte(frame.start)}H`);
 
     // 地址域
-    appendDetailSection(resultDiv, 'address', '地址域', `${frame.address.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
+    appendDetailSection(resultDiv, 'address', '地址域', `${formatBytes(frame.address)}`);
 
-    appendDetailSection(resultDiv, 'header', '起始符2', `${frame.start2.toString(16).padStart(2, '0').toUpperCase()}H`);
+    appendDetailSection(resultDiv, 'header', '起始符2', `${formatByte(frame.start2)}H`);
 
     // 控制域
-    appendDetailSection(resultDiv, 'control', '控制码', `${frame.control.byte.toString(16).padStart(2, '0').toUpperCase()}H`);
+    appendDetailSection(resultDiv, 'control', '控制码', `${formatByte(frame.control.byte)}H`);
     const controlTable = create645ControlTable(frame.control);
     resultDiv.appendChild(controlTable);
 
     // 数据长度
-    appendDetailSection(resultDiv, 'length', '数据长度', `${frame.dataLength} (${frame.dataLength.toString(16).padStart(2, '0').toUpperCase()}H)`);
+    appendDetailSection(resultDiv, 'length', '数据长度', `${frame.dataLength} (${formatByte(frame.dataLength)}H)`);
 
     // 数据域
     if (frame.dataLength > 0) {
         appendDetailSection(resultDiv, 'data', '数据域', `
-            ${frame.data.raw.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}
-            (${frame.data.actual.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')})
+            ${formatBytes(frame.data.raw)}
+            (${formatBytes(frame.data.actual)})
         `);
     }
 
     // 校验和
-    const checksumStatus = frame.checksum.valid ? '有效' : `无效（应为 ${frame.checksum.calculated.toString(16).padStart(2, '0').toUpperCase()}H）`;
+    const checksumStatus = frame.checksum.valid ? '有效' : `无效（应为 ${formatByte(frame.checksum.calculated)}H）`;
     appendDetailSection(resultDiv, frame.checksum.valid ? 'cs' : 'error', '帧校验和',
-        `${frame.checksum.declared.toString(16).padStart(2, '0').toUpperCase()}H (${checksumStatus})`);
+        `${formatByte(frame.checksum.declared)}H (${checksumStatus})`);
 
-    appendDetailSection(resultDiv, 'footer', '结束符', `${frame.end.toString(16).padStart(2, '0').toUpperCase()}H`);
+    appendDetailSection(resultDiv, 'footer', '结束符', `${formatByte(frame.end)}H`);
 }
 
 // ====================== 显示辅助函数 ======================

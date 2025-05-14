@@ -46,10 +46,20 @@ function hexStringToBytes(hexStr) {
     return bytes;
 }
 
-function hexDumpSimple(bytes) {
-    return bytes.map(b => b.toString(16).padStart(2, '0')).join(' ');
-}
+/**
+ * 将字节数组格式化为十六进制字符串
+ * @param {Array<number>} bytes - 字节数组
+ * @returns {string} 格式化的十六进制字符串
+ */
+const formatBytes = (bytes) =>
+    bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
 
+/**
+ * 格式化单个字节为十六进制显示
+ * @param {number} byte - 要格式化的字节
+ * @returns {string} 格式化的十六进制字符串
+ */
+const formatByte = (byte) => byte.toString(16).padStart(2, '0').toUpperCase();
 
 /**
  * 计算校验和

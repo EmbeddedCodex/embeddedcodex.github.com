@@ -180,36 +180,36 @@ function display3762Result(frame, resultDiv) {
     const summary = document.createElement('p');
     summary.classList.add('result'); // 添加样式类，用于控制显示样式
     summary.innerHTML = `解析结果: 
-        <span class="header">${frame.start.toString(16).padStart(2, '0').toUpperCase()}</span>  <!-- 起始字符 -->
-        <span class="length">${frame.length.byte.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>  <!-- 长度字段 -->
-        <span class="control">${frame.control.byte.toString(16).padStart(2, '0').toUpperCase()}</span>  <!-- 控制域 -->
-        <span class="data">${frame.userData.byte.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}</span>  <!-- 用户数据 -->
-        <span class="cs">${frame.checksum.declared.toString(16).padStart(2, '0').toUpperCase()}</span>  <!-- 校验和 -->
-        <span class="footer">${frame.end.toString(16).padStart(2, '0').toUpperCase()}</span>  <!-- 结束字符 -->
+        <span class="header">${formatByte(frame.start)}</span>  <!-- 起始字符 -->
+        <span class="length">${formatBytes(frame.length.byte)}</span>  <!-- 长度字段 -->
+        <span class="control">${formatByte(frame.control.byte)}</span>  <!-- 控制域 -->
+        <span class="data">${formatBytes(frame.userData.byte)}</span>  <!-- 用户数据 -->
+        <span class="cs">${formatByte(frame.checksum.declared)}</span>  <!-- 校验和 -->
+        <span class="footer">${formatByte(frame.end)}</span>  <!-- 结束字符 -->
     `;
     resultDiv.appendChild(summary); // 将简洁结果行添加到结果显示区域
 
     // 2. 显示详细解析结果
     // 调用辅助函数，逐个显示帧的各个部分的详细信息
-    appendDetailSection(resultDiv, 'header', '起始', `${frame.start.toString(16).padStart(2, '0').toUpperCase()}H`);
+    appendDetailSection(resultDiv, 'header', '起始', `${formatByte(frame.start)}H`);
     appendDetailSection(resultDiv, 'length', '长度', `${frame.length.info} (${frame.length.info.toString(16).padStart(4, '0').toUpperCase()}H)`);
 
     // 控制域详情
-    appendDetailSection(resultDiv, 'control', '控制域', `${frame.control.byte.toString(16).padStart(2, '0').toUpperCase()}H`);
+    appendDetailSection(resultDiv, 'control', '控制域', `${formatByte(frame.control.byte)}H`);
     const controlTable = create3762ControlTable(frame.control); // 创建控制域的详细表格
     resultDiv.appendChild(controlTable);
 
     // 用户数据详情
-    appendDetailSection(resultDiv, 'data', '用户数据', `${frame.userData.byte.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`);
+    appendDetailSection(resultDiv, 'data', '用户数据', `${formatBytes(frame.userData.byte)}`);
     const userDataTable = create3762UserDataTable(frame.userData.info, frame.control.info); // 创建用户数据的详细表格
     resultDiv.appendChild(userDataTable);
 
     // 校验和
-    const checksumStatus = frame.checksum.valid ? '有效' : `无效（应为 ${frame.checksum.calculated.toString(16).padStart(2, '0').toUpperCase()}H）`;
+    const checksumStatus = frame.checksum.valid ? '有效' : `无效（应为 ${formatByte(frame.checksum.calculated)}H）`;
     appendDetailSection(resultDiv, frame.checksum.valid ? 'cs' : 'error', '帧校验和',
-        `${frame.checksum.declared.toString(16).padStart(2, '0').toUpperCase()}H (${checksumStatus})`);
+        `${formatByte(frame.checksum.declared)}H (${checksumStatus})`);
 
-    appendDetailSection(resultDiv, 'footer', '结束', `${frame.end.toString(16).padStart(2, '0').toUpperCase()}H`);
+    appendDetailSection(resultDiv, 'footer', '结束', `${formatByte(frame.end)}H`);
 }
 
 // ====================== 显示辅助函数 ======================
