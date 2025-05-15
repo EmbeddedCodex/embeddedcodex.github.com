@@ -25,8 +25,8 @@
         <div class="content-area"> <!-- 内容区域，显示协议解析界面 -->
 
             <div class="tab-container">
-                <div class="tab-item" onclick="openTab(event, 'parseTab')">解析</div>
                 <div class="tab-item" onclick="openTab(event, 'generateTab')">生成</div>
+                <div class="tab-item" onclick="openTab(event, 'parseTab')">解析</div>
             </div>
 
             <div id="parseTab" class="tab-content">
@@ -44,86 +44,28 @@
             </div>
 
             <div id="generateTab" class="tab-content">
-                <h2>Content of Tab Generate</h2>
-                <p>This is the content of the generate tab.</p>
+                <section id="gen-protocol-3762" class="protocol-section active"> <!-- 376.2协议内容 -->
+                    <!-- 376.2协议内容保持不变 -->
+                </section>
+
+                <section id="gen-protocol-645" class="protocol-section"> <!-- 645协议内容 -->
+                    <!-- 645协议内容保持不变 -->
+                </section>
+
+                <section id="gen-protocol-698" class="protocol-section"> <!-- 698协议内容 -->
+                    <!-- 698协议内容保持不变 -->
+                </section>
             </div>
 
         </div>
     </div>
-
-    <script>
-        function switchSection(sectionId) {
-            // 隐藏所有内容区域
-            document.querySelectorAll('.protocol-section').forEach(section => {
-                section.classList.remove('active');
-            });
-
-            // 取消所有侧边栏项的活动状态
-            document.querySelectorAll('.sidebar-item').forEach(item => {
-                item.classList.remove('active');
-            });
-
-            // 显示选中的内容区域
-            document.getElementById(sectionId).classList.add('active');
-
-            // 设置选中侧边栏项的活动状态
-            event.currentTarget.classList.add('active');
-        }
-
-        function switchTab(protocolId, tabId) {
-            // 隐藏所有标签内容
-            document.querySelectorAll(`#${protocolId} .tab-content`).forEach(content => {
-                content.classList.remove('active');
-            });
-
-            // // 取消所有标签项的活动状态
-            // document.querySelectorAll(`#${protocolId} .tab-item`).forEach(item => {
-            //     item.classList.remove('active');
-            // });
-
-            // // 显示选中的标签内容
-            // document.getElementById(`${protocolId}-${tabId}`).classList.add('active');
-
-            // 设置选中标签项的活动状态
-            event.currentTarget.classList.add('active');
-        }
-
-        function openTab(event, tabName) {
-            // 获取所有标签项
-            const tabItems = document.querySelectorAll('.tab-item');
-            // 获取所有标签内容
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            // 移除所有标签项的active类
-            tabItems.forEach(item => {
-                item.classList.remove('active');
-            });
-
-            // 隐藏所有标签内容
-            tabContents.forEach(content => {
-                content.classList.remove('active');
-            });
-
-            // 添加active类到当前点击的标签项
-            event.currentTarget.classList.add('active');
-
-            // 显示当前标签的内容
-            const activeTabContent = document.getElementById(tabName);
-            activeTabContent.classList.add('active');
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const firstTabItem = document.querySelector('.tab-item');
-            const firstTabContentId = firstTabItem.getAttribute('onclick').match(/'([^']+)'/)[1];
-            openTab({ currentTarget: firstTabItem }, firstTabContentId);
-        });
-    </script> <!-- JavaScript函数，用于切换协议内容区域 -->
 
     <!-- 原有的JS文件引用 -->
     <script src="js/main.js"></script> <!-- 主JS文件 -->
     <script src="js/parser-3762.js"></script> <!-- 376.2协议解析JS文件 -->
     <script src="js/parser-645.js"></script> <!-- 645协议解析JS文件 -->
     <script src="js/parser-698.js"></script> <!-- 698协议解析JS文件 -->
+    <script src="js/generate-3762.js"></script>
 </body>
 
 </html>

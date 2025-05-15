@@ -129,18 +129,81 @@ function addTableRow(tbody, label, value) {
 }
 
 // 通过字符串名称调用同名函数
-function callFunctionByName(functionName) {
+function callFunctionByName(functionName, ...args) {
     // 检查函数是否存在
     if (typeof window[functionName] === 'function') {
         // 调用函数
-        window[functionName]();
+        window[functionName](...args);
     } else {
         console.error(`函数 ${functionName} 不存在`);
     }
 }
 
+function switchSection(sectionId) {
+    // 隐藏所有内容区域
+    document.querySelectorAll('.protocol-section').forEach(section => {
+        section.classList.remove('active');
+    });
+
+    // 取消所有侧边栏项的活动状态
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // 显示选中的内容区域
+    document.getElementById(sectionId).classList.add('active');
+
+    // 设置选中侧边栏项的活动状态
+    event.currentTarget.classList.add('active');
+}
+
+function switchTab(protocolId, tabId) {
+    // 隐藏所有标签内容
+    document.querySelectorAll(`#${protocolId} .tab-content`).forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // // 取消所有标签项的活动状态
+    // document.querySelectorAll(`#${protocolId} .tab-item`).forEach(item => {
+    //     item.classList.remove('active');
+    // });
+
+    // // 显示选中的标签内容
+    // document.getElementById(`${protocolId}-${tabId}`).classList.add('active');
+
+    // 设置选中标签项的活动状态
+    event.currentTarget.classList.add('active');
+}
+
+function openTab(event, tabName) {
+    // 获取所有标签项
+    const tabItems = document.querySelectorAll('.tab-item');
+    // 获取所有标签内容
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // 移除所有标签项的active类
+    tabItems.forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // 隐藏所有标签内容
+    tabContents.forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // 添加active类到当前点击的标签项
+    event.currentTarget.classList.add('active');
+
+    // 显示当前标签的内容
+    const activeTabContent = document.getElementById(tabName);
+    activeTabContent.classList.add('active');
+}
+
+
+// ====================== 解析函数 ======================
+
 // 共用功能和初始化代码
-function createProtocolSection(protocolName, hexInputValue, placeholder) {
+function createParserProtocolSection(protocolName, hexInputValue, placeholder) {
 
     const filterName = protocolName.replace(/[^a-zA-Z0-9_]/g, '');
     // 获取目标section
@@ -190,26 +253,139 @@ function createProtocolSection(protocolName, hexInputValue, placeholder) {
     callFunctionByName(`createProtocol${filterName}FrameDescription`);
 }
 
+// ====================== 生成函数 ======================
+
+function generateTable(event, tabName) {
+    console.log(event, tabName);
+    // 获取所有标签项
+    const tabItems = document.querySelectorAll('.tab-item');
+    // 获取所有标签内容
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // 移除所有标签项的active类
+    tabItems.forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // 隐藏所有标签内容
+    tabContents.forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // 添加active类到当前点击的标签项
+    event.currentTarget.classList.add('active');
+
+    // 显示当前标签的内容
+    const activeTabContent = document.getElementById(tabName);
+    activeTabContent.classList.add('active');
+}
+
+// 共用功能和初始化代码
+function createGenerateProtocolSection(protocolName, hexInputValue, placeholder) {
+
+    const filterName = protocolName.replace(/[^a-zA-Z0-9_]/g, '');
+    // 获取目标section
+    const targetSection = document.getElementById(`gen-protocol-${filterName}`);
+
+    // 创建内部div
+    const innerDiv = document.createElement('div');
+
+    // 创建标题
+    const title = document.createElement('h2');
+    title.textContent = `${protocolName} 协议帧生成`;
+
+    // 创建通信双方类型
+    const typeTab = document.createElement('div');
+    typeTab.className = 'tab-container';
+    const typeTabItem1 = document.createElement('tab-item');
+    typeTabItem1.className = 'tab-item active';
+    typeTabItem1.textContent = 'E8: 终端与本地模块通信';
+    typeTabItem1.onclick = function () {
+        callFunctionByName(`generateTable`, event, 'typeTabItem1');
+    }
+    typeTab.appendChild(typeTabItem1);
+    const typeTabItem2 = document.createElement('tab-item');
+    typeTabItem2.className = 'tab-item';
+    typeTabItem2.textContent = 'EA: 采集器与本地模块通信';
+    typeTabItem2.onclick = function () {
+        callFunctionByName(`generateTable`, event, 'typeTabItem2');
+    }
+    typeTab.appendChild(typeTabItem2);
+    const typeTabItem3 = document.createElement('tab-item');
+    typeTabItem3.className = 'tab-item';
+    typeTabItem3.textContent = 'EC: 终端与USB功能模块通信';
+    typeTabItem3.onclick = function () {
+        callFunctionByName(`generateTable`, event, 'typeTabItem3');
+    }
+    typeTab.appendChild(typeTabItem3);
+
+    // // 创建输入组
+    // const inputGroup = document.createElement('div');
+    // inputGroup.className = 'input-group';
+
+    // // 创建输入框
+    // const input = document.createElement('input');
+    // input.type = 'text';
+    // input.id = `hexInput_${filterName}`;
+    // input.className = 'hex-input';
+    // input.placeholder = placeholder;
+    // input.value = hexInputValue;
+
+    // // 创建解析按钮
+    // const button = document.createElement('button');
+    // button.textContent = '解析';
+    // button.className = 'parse-btn';
+    // button.onclick = function () {
+    //     callFunctionByName(`parseHex_${filterName}`); // 调用解析函数
+    // };
+
+    // 创建结果显示容器
+    const resultContainer = document.createElement('div');
+    resultContainer.className = 'result-container';
+    resultContainer.id = `generation_${filterName}`;
+
+    // 组装结构
+    // inputGroup.appendChild(input);
+    // inputGroup.appendChild(button);
+    innerDiv.appendChild(title);
+    innerDiv.appendChild(typeTab);
+    // innerDiv.appendChild(inputGroup);
+    innerDiv.appendChild(resultContainer);
+    targetSection.appendChild(innerDiv);
+
+    // // 生成帧格式说明
+    // callFunctionByName(`createProtocol${filterName}FrameDescription`);
+
+    callFunctionByName(`generate_${filterName}_frame`);
+}
+
 // 调用函数并将内容添加到页面
 document.addEventListener('DOMContentLoaded', () => {
     // 698协议
-    const section698 = createProtocolSection(
+    const section698 = createParserProtocolSection(
         '698',
         '68 18 00 43 26 01 30 01 00 00 00 00 A1 83 EE 05 01 02 20 00 02 01 00 6B AF 16',
         '输入十六进制字符串，例如: 68 18 00 43 26 01 30 01 00 00 00 00 A1 83 EE 05 01 02 20 00 02 01 00 6B AF 16',
     );
 
     // 645协议
-    const section645 = createProtocolSection(
+    const section645 = createParserProtocolSection(
         '645',
         '68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16',
         '输入十六进制字符串，例如: 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16',
     );
 
     // 376.2协议
-    const section3762 = createProtocolSection(
+    const section3762 = createParserProtocolSection(
         '376.2',
         '68 2E 00 60 01 00 00 00 00 00 20 01 00 00 00 00 02 16 01 02 02 E8 02 00 83 08 07 10 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16 E5 16',
         '输入十六进制字符串，例如: 68 2E 00 60 01 00 00 00 00 00 20 01 00 00 00 00 02 16 01 02 02 E8 02 00 83 08 07 10 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16 E5 16',
     );
+
+    // 376.2协议
+    createGenerateProtocolSection('376.2');
+
+    const firstTabItem = document.querySelector('.tab-item');
+    const firstTabContentId = firstTabItem.getAttribute('onclick').match(/'([^']+)'/)[1];
+    openTab({ currentTarget: firstTabItem }, firstTabContentId);
 });
