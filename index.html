@@ -2,16 +2,22 @@
 <html lang="zh-CN">
 
 <head>
-    <meta charset="UTF-8"> <!-- 设置字符编码为UTF-8 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 使网页在移动设备上自适应 -->
-    <title>协议帧格式工具</title> <!-- 网页标题 -->
-    <link rel="stylesheet" href="css/styles.css"> <!-- 引入外部CSS样式文件 -->
+    <!-- 设置字符编码为UTF-8 -->
+    <meta charset="UTF-8">
+    <!-- 使网页在移动设备上自适应 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 网页标题 -->
+    <title>协议帧格式工具</title>
+    <!-- 引入外部CSS样式文件 -->
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
     <header>
-        <h1>协议帧格式工具</h1> <!-- 主标题 -->
-        <p>支持 DL/T 376.2、DL/T 645 和 DL/T 698 协议的帧格式。</p> <!-- 副标题，说明支持的协议 -->
+        <!-- 主标题 -->
+        <h1>协议帧格式工具</h1>
+        <!-- 副标题，说明支持的协议 -->
+        <p>支持 DL/T 376.2、DL/T 645 和 DL/T 698 协议的帧格式。</p>
     </header>
 
     <!-- 主容器，用于布局 -->
@@ -28,41 +34,39 @@
 
             <!-- 标签页内容 -->
             <div id="parseTab" class="tab-content">
-                <section id="protocol-3762" class="protocol-section active"> <!-- 376.2协议内容 -->
-                    <!-- 376.2协议内容保持不变 -->
-                </section>
+                <!-- 376.2协议内容 -->
+                <section id="protocol-3762" class="protocol-section active"></section>
 
-                <section id="protocol-645" class="protocol-section"> <!-- 645协议内容 -->
-                    <!-- 645协议内容保持不变 -->
-                </section>
+                <!-- 645协议内容 -->
+                <section id="protocol-645" class="protocol-section"></section>
 
-                <section id="protocol-698" class="protocol-section"> <!-- 698协议内容 -->
-                    <!-- 698协议内容保持不变 -->
-                </section>
+                <!-- 698协议内容 -->
+                <section id="protocol-698" class="protocol-section"></section>
             </div>
 
             <div id="generateTab" class="tab-content">
-                <section id="gen-protocol-3762" class="protocol-section active"> <!-- 376.2协议内容 -->
-                    <!-- 376.2协议内容保持不变 -->
-                </section>
+                <!-- 376.2协议内容 -->
+                <section id="gen-protocol-3762" class="protocol-section active"></section>
 
-                <section id="gen-protocol-645" class="protocol-section"> <!-- 645协议内容 -->
-                    <!-- 645协议内容保持不变 -->
-                </section>
+                <!-- 645协议内容 -->
+                <section id="gen-protocol-645" class="protocol-section"></section>
 
-                <section id="gen-protocol-698" class="protocol-section"> <!-- 698协议内容 -->
-                    <!-- 698协议内容保持不变 -->
-                </section>
+                <!-- 698协议内容 -->
+                <section id="gen-protocol-698" class="protocol-section"></section>
             </div>
 
         </div>
     </div>
 
-    <!-- 原有的JS文件引用 -->
-    <script src="js/main.js"></script> <!-- 主JS文件 -->
-    <script src="js/parser-3762.js"></script> <!-- 376.2协议解析JS文件 -->
-    <script src="js/parser-645.js"></script> <!-- 645协议解析JS文件 -->
-    <script src="js/parser-698.js"></script> <!-- 698协议解析JS文件 -->
+    <!-- 主JS文件 -->
+    <script src="js/main.js"></script>
+    <!-- 376.2协议解析JS文件 -->
+    <script src="js/parser-3762.js"></script>
+    <!-- 645协议解析JS文件 -->
+    <script src="js/parser-645.js"></script>
+    <!-- 698协议解析JS文件 -->
+    <script src="js/parser-698.js"></script>
+    <!-- 生成376.2协议的JS文件 -->
     <script src="js/generate-3762.js"></script>
 </body>
 
