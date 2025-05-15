@@ -157,31 +157,6 @@ function switchTab(protocolId, tabId) {
     event.currentTarget.classList.add('active');
 }
 
-function openTab(event, tabName) {
-    // 获取所有标签项
-    const tabItems = document.querySelectorAll('.tab-item');
-    // 获取所有标签内容
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    // 移除所有标签项的active类
-    tabItems.forEach(item => {
-        item.classList.remove('active');
-    });
-
-    // 隐藏所有标签内容
-    tabContents.forEach(content => {
-        content.classList.remove('active');
-    });
-
-    // 添加active类到当前点击的标签项
-    event.currentTarget.classList.add('active');
-
-    // 显示当前标签的内容
-    const activeTabContent = document.getElementById(tabName);
-    activeTabContent.classList.add('active');
-}
-
-
 // ====================== 解析函数 ======================
 
 // 共用功能和初始化代码
@@ -357,10 +332,10 @@ function createGenerateProtocolSection(protocolName, hexInputValue, placeholder)
 
     // 获取侧边栏元素
     const sidebar = document.getElementById("protocol-sidebar");
-    
-    const switchSection = (sectionId) => {
+
+    const switchSection = (event, sectionId) => {
         console.log("切换到：" + `protocol-${sectionId}`);
-        
+
         const content = document.getElementById("protocol-content-area");
 
         // 隐藏所有内容区域
@@ -375,11 +350,12 @@ function createGenerateProtocolSection(protocolName, hexInputValue, placeholder)
 
         // 显示选中的内容区域
         document.getElementById(`protocol-${sectionId}`).classList.add('active');
+        document.getElementById(`gen-protocol-${sectionId}`).classList.add('active');
 
         // 设置选中侧边栏项的活动状态
-        document.getElementById(`sidebar-item-${sectionId}`).classList.add('active');
-        // event.currentTarget.classList.add('active');
-        // console.log(event.currentTarget);
+        // document.getElementById(`sidebar-item-${sectionId}`).classList.add('active');
+        event.currentTarget.classList.add('active');
+        console.log(event.currentTarget);
     };
 
     // 遍历协议数据，动态创建sidebar-item
@@ -387,15 +363,69 @@ function createGenerateProtocolSection(protocolName, hexInputValue, placeholder)
         const sidebarItem = document.createElement("div"); // 创建div元素
         sidebarItem.className = "sidebar-item"; // 添加类名
         sidebarItem.id = `sidebar-item-${protocol.id}`;
-        sidebarItem.onclick = () => switchSection(protocol.id); // 添加点击事件
+        sidebarItem.onclick = (event) => switchSection(event, protocol.id); // 添加点击事件
         sidebarItem.textContent = protocol.name; // 设置文本内容
 
         // 如果是第一个协议，添加active类
         if (index === 0) {
             sidebarItem.classList.add("active");
+            switchSection({ currentTarget: sidebarItem }, protocol.id);
         }
 
         sidebar.appendChild(sidebarItem); // 将sidebar-item添加到侧边栏
+    });
+})();
+
+
+
+(function createProtocolTabs() {
+    // 定义协议数据
+    const protocols = [
+        { name: "生成", id: "generate" },
+        { name: "解析", id: "parse" },
+    ];
+
+    // 获取 protocol-tab-container 元素
+    const container = document.getElementById('protocol-tab-container');
+
+    const openTab = (event, tabId) => {
+        console.log("切换到：" + `${tabId}Tab`);
+
+        const content = document.getElementById("protocol-content-area");
+
+        // 移除所有标签项的active类
+        container.querySelectorAll('.tab-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // 隐藏所有标签内容
+        content.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+
+        // 显示当前标签的内容
+        document.getElementById(`${tabId}Tab`).classList.add('active');
+
+        // 添加active类到当前点击的标签项
+        event.currentTarget.classList.add('active');
+    };
+
+    // 遍历协议数据，动态创建tab-item
+    protocols.forEach((protocol, index) => {
+        const tabItem = document.createElement("div"); // 创建div元素
+        tabItem.className = "tab-item"; // 添加类名
+        tabItem.id = `tab-item-${protocol.id}`;
+        tabItem.onclick = (event) => openTab(event, protocol.id); // 添加点击事件
+        tabItem.textContent = protocol.name; // 设置文本内容
+
+        // 如果是第一个协议，添加active类
+        if (index === 0) {
+            tabItem.classList.add("active");
+            // 生成初始化界面
+            openTab({ currentTarget: tabItem }, protocol.id);
+        }
+
+        container.appendChild(tabItem);
     });
 })();
 
@@ -425,8 +455,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 376.2协议
     createGenerateProtocolSection('376.2');
-
-    const firstTabItem = document.querySelector('.tab-item');
-    const firstTabContentId = firstTabItem.getAttribute('onclick').match(/'([^']+)'/)[1];
-    openTab({ currentTarget: firstTabItem }, firstTabContentId);
 });
