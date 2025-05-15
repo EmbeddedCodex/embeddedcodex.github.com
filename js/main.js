@@ -139,24 +139,6 @@ function callFunctionByName(functionName, ...args) {
     }
 }
 
-function switchSection(sectionId) {
-    // 隐藏所有内容区域
-    document.querySelectorAll('.protocol-section').forEach(section => {
-        section.classList.remove('active');
-    });
-
-    // 取消所有侧边栏项的活动状态
-    document.querySelectorAll('.sidebar-item').forEach(item => {
-        item.classList.remove('active');
-    });
-
-    // 显示选中的内容区域
-    document.getElementById(sectionId).classList.add('active');
-
-    // 设置选中侧边栏项的活动状态
-    event.currentTarget.classList.add('active');
-}
-
 function switchTab(protocolId, tabId) {
     // 隐藏所有标签内容
     document.querySelectorAll(`#${protocolId} .tab-content`).forEach(content => {
@@ -358,6 +340,65 @@ function createGenerateProtocolSection(protocolName, hexInputValue, placeholder)
 
     callFunctionByName(`generate_${filterName}_frame`);
 }
+
+
+// ====================== 侧边栏函数 ======================
+
+/**
+ * 初始化协议切换侧边栏 IIFE
+*/
+(function initializeProtocolSidebar() {
+    // 定义协议数据
+    const protocols = [
+        { name: "376.2 协议", id: "3762" },
+        { name: "645 协议", id: "645" },
+        { name: "698 协议", id: "698" }
+    ];
+
+    // 获取侧边栏元素
+    const sidebar = document.getElementById("protocol-sidebar");
+    
+    const switchSection = (sectionId) => {
+        console.log("切换到：" + `protocol-${sectionId}`);
+        
+        const content = document.getElementById("protocol-content-area");
+
+        // 隐藏所有内容区域
+        content.querySelectorAll('.protocol-section').forEach(section => {
+            section.classList.remove('active');
+        });
+
+        // 取消所有侧边栏项的活动状态
+        sidebar.querySelectorAll('.sidebar-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // 显示选中的内容区域
+        document.getElementById(`protocol-${sectionId}`).classList.add('active');
+
+        // 设置选中侧边栏项的活动状态
+        document.getElementById(`sidebar-item-${sectionId}`).classList.add('active');
+        // event.currentTarget.classList.add('active');
+        // console.log(event.currentTarget);
+    };
+
+    // 遍历协议数据，动态创建sidebar-item
+    protocols.forEach((protocol, index) => {
+        const sidebarItem = document.createElement("div"); // 创建div元素
+        sidebarItem.className = "sidebar-item"; // 添加类名
+        sidebarItem.id = `sidebar-item-${protocol.id}`;
+        sidebarItem.onclick = () => switchSection(protocol.id); // 添加点击事件
+        sidebarItem.textContent = protocol.name; // 设置文本内容
+
+        // 如果是第一个协议，添加active类
+        if (index === 0) {
+            sidebarItem.classList.add("active");
+        }
+
+        sidebar.appendChild(sidebarItem); // 将sidebar-item添加到侧边栏
+    });
+})();
+
 
 // 调用函数并将内容添加到页面
 document.addEventListener('DOMContentLoaded', () => {
