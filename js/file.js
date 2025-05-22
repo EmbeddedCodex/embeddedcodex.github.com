@@ -127,6 +127,7 @@ function generateInputFields(tab, contentArea) {
                 // 创建输入框
                 const input = document.createElement("input");
                 input.type = "text";
+                input.dataset.fieldKey =  `${fieldKey}`;
                 input.placeholder = fieldValue; // 将字段描述作为占位符
                 input.style.width = "100%"; // 输入框宽度
                 input.style.marginBottom = "10px"; // 添加一些间距
@@ -144,6 +145,30 @@ function generateInputFields(tab, contentArea) {
                 label.style.marginBottom = "5px"; // 添加一些间距
                 contentArea.appendChild(label);
             }
+
+            // 创建按钮
+            const button = document.createElement("button");
+            button.textContent = "打印";
+            button.style.marginLeft = "10px"; // 与输入框的间距
+            button.style.width = "50px"; // 按钮宽度
+            button.style.height = "25px"; // 按钮高度
+
+            // 为按钮添加点击事件处理程序
+            button.addEventListener("click", () => {
+                console.log(contentArea.children)
+                const inputValues = [];
+                for (let child of contentArea.children) {
+                    if (child.tagName === "INPUT") {
+                        const fieldKey = child.dataset.fieldKey; // 获取字段名称
+                        const inputValue = child.value; // 获取输入值
+                        console.log(`字段: ${fieldKey}, 输入值: ${inputValue}`);
+                        inputValues.push({ fieldKey, inputValue });
+                    }
+                }
+                console.log(inputValues);
+            });
+            contentArea.appendChild(button);
+
         } catch (error) {
             console.error(`在处理 ${tab.id} ${tab.名称 ? `: ${tab.名称}` : ''} 时发生错误:`, error);
         }
