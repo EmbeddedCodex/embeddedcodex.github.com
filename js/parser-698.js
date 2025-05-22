@@ -502,3 +502,7 @@ function createProtocol698FrameDescription() {
     resultDiv.appendChild(paragraph1);
     resultDiv.appendChild(paragraph2);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("p698.js");
+});

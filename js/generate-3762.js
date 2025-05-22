@@ -36,3 +36,7 @@ async function generate_3762_frame() {
 
     // console.log(data);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("g3762.js");
+});

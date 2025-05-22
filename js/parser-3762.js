@@ -609,3 +609,7 @@ function createProtocol3762FrameDescription() {
     resultDiv.appendChild(paragraph1);
     resultDiv.appendChild(paragraph2);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("p3762.js");
+});

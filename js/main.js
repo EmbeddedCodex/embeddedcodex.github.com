@@ -320,9 +320,9 @@ function createGenerateProtocolSection(protocolName, hexInputValue, placeholder)
 // ====================== 侧边栏函数 ======================
 
 /**
- * 初始化协议切换侧边栏 IIFE
+ * 初始化协议切换侧边栏
 */
-(function initializeProtocolSidebar() {
+function initializeProtocolSidebar() {
     // 定义协议数据
     const protocols = [
         { name: "376.2 协议", id: "3762" },
@@ -374,11 +374,11 @@ function createGenerateProtocolSection(protocolName, hexInputValue, placeholder)
 
         sidebar.appendChild(sidebarItem); // 将sidebar-item添加到侧边栏
     });
-})();
+}
 
 
 
-(function createProtocolTabs() {
+function createProtocolTabs() {
     // 定义协议数据
     const protocols = [
         { name: "生成", id: "generate" },
@@ -427,11 +427,14 @@ function createGenerateProtocolSection(protocolName, hexInputValue, placeholder)
 
         container.appendChild(tabItem);
     });
-})();
+}
 
 
 // 调用函数并将内容添加到页面
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("main.js");
+    initializeProtocolSidebar();
+    createProtocolTabs();
     // 698协议
     const section698 = createParserProtocolSection(
         '698',

@@ -352,3 +352,7 @@ function createProtocol645FrameDescription() {
     resultDiv.appendChild(table);
     resultDiv.appendChild(paragraph);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("p645.js");
+});
