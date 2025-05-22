@@ -433,6 +433,8 @@ function createProtocolTabs() {
 // 调用函数并将内容添加到页面
 document.addEventListener('DOMContentLoaded', () => {
     console.log("main.js");
+    return;
+
     initializeProtocolSidebar();
     createProtocolTabs();
     // 698协议
