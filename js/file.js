@@ -8,7 +8,7 @@ const fetchProtocol3762Data = createProtocolFetcher("3762");
 const fetchProtocol6452007Data = createProtocolFetcher("645_2007");
 
 const protocolCache = {}; // 缓存数据，相同的协议可能会被多次请求
-const skipOption = true; // 跳过json的上下行
+const skipOption = false; // 跳过json的上下行
 
 async function fetchData(protocolId) {
     if (protocolCache[protocolId]) {
@@ -45,7 +45,7 @@ async function fetchData(protocolId) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // 生成标签页结构的函数
-function generateTabs(data, parentElement, level = 0) {
+function generateTabs(data, parentElement, level = 0, prefix = '') {
     if (!data.tabs || data.tabs.length === 0) return;
 
     // 创建标签容器
@@ -58,7 +58,7 @@ function generateTabs(data, parentElement, level = 0) {
         button.className = 'tablinks';
         button.textContent = `${tab.id} ${tab.名称 ? `: ${tab.名称}` : ''}`;
         button.onclick = function (event) {
-            openTab(event, tab.id);
+            openTab(event, `${prefix}_${tab.id}`);
         };
         tabContainer.appendChild(button);
     });
@@ -68,7 +68,7 @@ function generateTabs(data, parentElement, level = 0) {
     // 创建内容区域
     data.tabs.forEach(tab => {
         const tabContent = document.createElement('div');
-        tabContent.id = tab.id;
+        tabContent.id = `${prefix}_${tab.id}`;
         tabContent.className = 'tabcontent';
 
         // 字段
@@ -85,17 +85,17 @@ function generateTabs(data, parentElement, level = 0) {
         console.log(level, tab)
         if (tab.tabs && tab.tabs.length > 0) {
             if ((skipOption === true) && (level === 1)) { // 跳过上下行选项
-                generateTabs(tab.tabs[0], tabContent, level + 1);
+                generateTabs(tab.tabs[0], tabContent, level + 1, `${prefix}_${tab.id}`);
             }
             else {
-                generateTabs(tab, tabContent, level + 1);
+                generateTabs(tab, tabContent, level + 1, `${prefix}_${tab.id}`);
             }
         }
     });
 
     // 默认打开第一个标签
     if (level === 0 && data.tabs.length > 0) {
-        const firstTabId = data.tabs[0].id;
+        const firstTabId = `${prefix}_${data.tabs[0].id}`;
         document.getElementById(firstTabId).style.display = 'block';
         tabContainer.querySelector('button').classList.add('active');
     }
@@ -127,7 +127,7 @@ function generateInputFields(tab, contentArea) {
                 // 创建输入框
                 const input = document.createElement("input");
                 input.type = "text";
-                input.dataset.fieldKey =  `${fieldKey}`;
+                input.dataset.fieldKey = `${fieldKey}`;
                 input.placeholder = fieldValue; // 将字段描述作为占位符
                 input.style.width = "100%"; // 输入框宽度
                 input.style.marginBottom = "10px"; // 添加一些间距
@@ -179,6 +179,8 @@ function generateInputFields(tab, contentArea) {
 
 // 打开标签页的函数
 function openTab(evt, tabId) {
+    console.log(evt, "id", tabId);
+
     // 获取当前层级的所有内容
     const currentLevelContents = getCurrentLevelContents(evt.currentTarget);
 
