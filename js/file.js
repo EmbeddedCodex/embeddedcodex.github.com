@@ -132,6 +132,10 @@ function generateInputFields(tab, contentArea) {
                 input.style.width = "100%"; // 输入框宽度
                 input.style.marginBottom = "10px"; // 添加一些间距
 
+                // 匹配字段长度，例如 "2字节"
+                const size = parseInt(fieldValue.match(/(\d+)字节/)?.[1] || '1', 10);
+                restrictHexInput(input, size);
+
                 // 将标签和输入框添加到容器中
                 contentArea.appendChild(label);
                 contentArea.appendChild(input);
@@ -175,6 +179,93 @@ function generateInputFields(tab, contentArea) {
     } else {
         console.log(`${tab.id} ${tab.名称 ? `: ${tab.名称}` : ''}-->不存在字段`);
     }
+}
+
+/**
+ * 限制16进制输入，带空格分隔，可限制最大字节数
+ * @param {HTMLInputElement} inputElement - 输入框元素
+ * @param {number} maxBytes - 最大允许的字节数（可选）
+ */
+function restrictHexInput(inputElement, maxBytes) {
+    inputElement.addEventListener('input', function (e) {
+        // 获取当前光标位置
+        const cursorPos = this.selectionStart;
+
+        // 移除所有非16进制字符（保留空格）
+        let value = this.value.toUpperCase().replace(/[^0-9A-F ]/g, '');
+
+        // 处理连续空格
+        value = value.replace(/ +/g, ' ');
+
+        // 自动插入空格逻辑
+        let newValue = '';
+        let charCount = 0;
+
+        for (let i = 0; i < value.length; i++) {
+            const char = value[i];
+
+            // 如果是16进制字符
+            if (/[0-9A-F]/.test(char)) {
+                charCount++;
+                newValue += char;
+
+                // 每两个字符后自动添加空格（如果后面不是已有空格）
+                if (charCount % 2 === 0 && i < value.length - 1 && value[i + 1] !== ' ') {
+                    newValue += ' ';
+                }
+            }
+            // 处理空格（确保空格只在每两个字符后出现）
+            else if (char === ' ') {
+                // 只有在偶数位置才允许空格
+                if (charCount % 2 === 0 && charCount > 0) {
+                    newValue += ' ';
+                }
+            }
+        }
+
+        // 处理连续空格
+        newValue = newValue.replace(/ +/g, ' ').trim();
+
+        // 分割成字节数组
+        const bytes = newValue.split(' ');
+
+        // 如果有字节数限制，截断超出部分
+        if (maxBytes !== undefined && bytes.length > maxBytes) {
+            bytes.length = maxBytes;
+            console.log(bytes);
+            newValue = bytes.join(' ');
+        }
+
+        // 更新输入框值
+        this.value = newValue;
+
+        // 恢复光标位置（考虑添加的空格）
+        let addedSpaces = (newValue.match(/ /g) || []).length - (value.match(/ /g) || []).length;
+        this.setSelectionRange(cursorPos + addedSpaces, cursorPos + addedSpaces);
+    });
+
+    // 处理粘贴事件
+    inputElement.addEventListener('paste', function (e) {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text');
+        const hexOnly = text.toUpperCase().replace(/[^0-9A-F]/g, '');
+
+        // 每两个字符插入空格
+        let formatted = '';
+        for (let i = 0; i < hexOnly.length; i++) {
+            if (i > 0 && i % 2 === 0) formatted += ' ';
+            formatted += hexOnly[i];
+        }
+
+        // 插入到当前光标位置
+        const startPos = this.selectionStart;
+        const endPos = this.selectionEnd;
+        this.value = this.value.substring(0, startPos) + formatted + this.value.substring(endPos);
+
+        // 设置光标位置
+        const newCursorPos = startPos + formatted.length;
+        this.setSelectionRange(newCursorPos, newCursorPos);
+    });
 }
 
 // 打开标签页的函数
