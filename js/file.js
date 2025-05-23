@@ -8,24 +8,23 @@ const fetchProtocol3762Data = createProtocolFetcher("3762");
 const fetchProtocol6452007Data = createProtocolFetcher("645_2007");
 
 const protocolCache = {}; // 缓存数据，相同的协议可能会被多次请求
-const skipOption = false; // 跳过json的上下行
 
 async function fetchData(protocolId) {
     if (protocolCache[protocolId]) {
         return protocolCache[protocolId];
     }
-
+    
     // 路径安全性
     if (!/^[\w_]+$/.test(protocolId)) {
         throw new Error("Invalid protocol ID");
     }
-
+    
     // 请求超时
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-
+    
     const filePath = `json/${protocolId}.json`;
-
+    
     try {
         const response = await fetch(filePath, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -43,11 +42,12 @@ async function fetchData(protocolId) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+const skipOption = false; // 跳过json的上下行
 
 // 生成标签页结构的函数
 function generateTabs(data, parentElement, level = 0, prefix = '') {
     if (!data.tabs || data.tabs.length === 0) return;
-
+    
     // 创建标签容器
     const tabContainer = document.createElement('div');
     tabContainer.className = level > 0 ? 'tab nested-tab' : 'tab';
@@ -134,6 +134,7 @@ function generateInputFields(tab, contentArea) {
 
                 // 匹配字段长度，例如 "2字节"
                 const size = parseInt(fieldValue.match(/(\d+)字节/)?.[1] || '1', 10);
+                // 限制16进制输入，带空格分隔，可限制最大字节数
                 restrictHexInput(input, size);
 
                 // 将标签和输入框添加到容器中
@@ -242,29 +243,6 @@ function restrictHexInput(inputElement, maxBytes) {
         // 恢复光标位置（考虑添加的空格）
         let addedSpaces = (newValue.match(/ /g) || []).length - (value.match(/ /g) || []).length;
         this.setSelectionRange(cursorPos + addedSpaces, cursorPos + addedSpaces);
-    });
-
-    // 处理粘贴事件
-    inputElement.addEventListener('paste', function (e) {
-        e.preventDefault();
-        const text = (e.clipboardData || window.clipboardData).getData('text');
-        const hexOnly = text.toUpperCase().replace(/[^0-9A-F]/g, '');
-
-        // 每两个字符插入空格
-        let formatted = '';
-        for (let i = 0; i < hexOnly.length; i++) {
-            if (i > 0 && i % 2 === 0) formatted += ' ';
-            formatted += hexOnly[i];
-        }
-
-        // 插入到当前光标位置
-        const startPos = this.selectionStart;
-        const endPos = this.selectionEnd;
-        this.value = this.value.substring(0, startPos) + formatted + this.value.substring(endPos);
-
-        // 设置光标位置
-        const newCursorPos = startPos + formatted.length;
-        this.setSelectionRange(newCursorPos, newCursorPos);
     });
 }
 
