@@ -43,6 +43,7 @@ async function fetchData(protocolId) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 const skipOption = false; // 跳过json的上下行
+var currentActivetabId = {}; // 记录当前页面，用于按键获取页面输入
 
 // 生成标签页结构的函数
 function generateTabs(data, parentElement, level = 0, prefix = '') {
@@ -151,28 +152,28 @@ function generateInputFields(tab, contentArea) {
                 contentArea.appendChild(label);
             }
 
-            // 创建按钮
-            const button = document.createElement("button");
-            button.textContent = "打印";
-            button.style.marginLeft = "10px"; // 与输入框的间距
-            button.style.width = "50px"; // 按钮宽度
-            button.style.height = "25px"; // 按钮高度
+            // // 创建按钮
+            // const button = document.createElement("button");
+            // button.textContent = "打印";
+            // button.style.marginLeft = "10px"; // 与输入框的间距
+            // button.style.width = "50px"; // 按钮宽度
+            // button.style.height = "25px"; // 按钮高度
 
-            // 为按钮添加点击事件处理程序
-            button.addEventListener("click", () => {
-                console.log(contentArea.children)
-                const inputValues = [];
-                for (let child of contentArea.children) {
-                    if (child.tagName === "INPUT") {
-                        const fieldKey = child.dataset.fieldKey; // 获取字段名称
-                        const inputValue = child.value; // 获取输入值
-                        console.log(`字段: ${fieldKey}, 输入值: ${inputValue}`);
-                        inputValues.push({ fieldKey, inputValue });
-                    }
-                }
-                console.log(inputValues);
-            });
-            contentArea.appendChild(button);
+            // // 为按钮添加点击事件处理程序
+            // button.addEventListener("click", () => {
+            //     console.log(contentArea.children)
+            //     const inputValues = [];
+            //     for (let child of contentArea.children) {
+            //         if (child.tagName === "INPUT") {
+            //             const fieldKey = child.dataset.fieldKey; // 获取字段名称
+            //             const inputValue = child.value; // 获取输入值
+            //             console.log(`字段: ${fieldKey}, 输入值: ${inputValue}`);
+            //             inputValues.push({ fieldKey, inputValue });
+            //         }
+            //     }
+            //     console.log(inputValues);
+            // });
+            // contentArea.appendChild(button);
 
         } catch (error) {
             console.error(`在处理 ${tab.id} ${tab.名称 ? `: ${tab.名称}` : ''} 时发生错误:`, error);
@@ -267,6 +268,10 @@ function openTab(evt, tabId) {
     // 显示当前标签内容并添加active类
     document.getElementById(tabId).style.display = 'block';
     evt.currentTarget.classList.add('active');
+
+    // 同步标签页 Id
+    currentActivetabId = tabId;
+    console.log(currentActivetabId,tabId);
 }
 
 // 获取当前层级的所有内容元素
@@ -302,6 +307,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("第一步完成:", result);
         const container = document.getElementById('tab-container');
         generateTabs(result, container);
+
+        // 创建按钮
+            const button = document.createElement("button");
+            button.textContent = "打印";
+            // button.style.marginLeft = "10px"; // 与输入框的间距
+            // button.style.width = "50px"; // 按钮宽度
+            // button.style.height = "25px"; // 按钮高度
+
+            // 为按钮添加点击事件处理程序
+            button.addEventListener("click", () => {
+                console.log(currentActivetabId);
+                // const inputValues = [];
+                // for (let child of currentTarget.children) {
+                //     if (child.tagName === "INPUT") {
+                //         const fieldKey = child.dataset.fieldKey; // 获取字段名称
+                //         const inputValue = child.value; // 获取输入值
+                //         console.log(`字段: ${fieldKey}, 输入值: ${inputValue}`);
+                //         // inputValues.push({ fieldKey, inputValue });
+                //     }
+                // }
+                // console.log(inputValues);
+            });
+            container.appendChild(button);
     })
         .catch(error => {
             console.error("处理链中出错:", error);
