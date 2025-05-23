@@ -94,7 +94,7 @@ function generateTabs(data, parentElement, level = 0, prefix = '') {
     });
 
     // 默认打开第一个标签
-    if (level === 0 && data.tabs.length > 0) {
+    if (data.tabs.length > 0) {
         const firstTabId = `${prefix}_${data.tabs[0].id}`;
         document.getElementById(firstTabId).style.display = 'block';
         tabContainer.querySelector('button').classList.add('active');
