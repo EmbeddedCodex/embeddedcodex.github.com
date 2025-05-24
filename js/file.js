@@ -13,18 +13,18 @@ async function fetchData(protocolId) {
     if (protocolCache[protocolId]) {
         return protocolCache[protocolId];
     }
-    
+
     // 路径安全性
     if (!/^[\w_]+$/.test(protocolId)) {
         throw new Error("Invalid protocol ID");
     }
-    
+
     // 请求超时
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
+
     const filePath = `json/${protocolId}.json`;
-    
+
     try {
         const response = await fetch(filePath, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -42,13 +42,11 @@ async function fetchData(protocolId) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-const skipOption = false; // 跳过json的上下行
-var currentActivetabId = {}; // 记录当前页面，用于按键获取页面输入
 
 // 生成标签页结构的函数
 function generateTabs(data, parentElement, level = 0, prefix = '') {
     if (!data.tabs || data.tabs.length === 0) return;
-    
+
     // 创建标签容器
     const tabContainer = document.createElement('div');
     tabContainer.className = level > 0 ? 'tab nested-tab' : 'tab';
@@ -72,8 +70,8 @@ function generateTabs(data, parentElement, level = 0, prefix = '') {
         tabContent.id = `${prefix}_${tab.id}`;
         tabContent.className = 'tabcontent';
 
-        // 字段
-        if (level === (skipOption ? 2 : 3)) {
+        // 存在字段，即为数据内容
+        if (tab.字段) {
             const contentArea = document.createElement('div');
             contentArea.className = 'content-area';
             generateInputFields(tab, contentArea);
@@ -83,14 +81,8 @@ function generateTabs(data, parentElement, level = 0, prefix = '') {
         parentElement.appendChild(tabContent);
 
         // 递归生成嵌套标签
-        console.log(level, tab)
         if (tab.tabs && tab.tabs.length > 0) {
-            if ((skipOption === true) && (level === 1)) { // 跳过上下行选项
-                generateTabs(tab.tabs[0], tabContent, level + 1, `${prefix}_${tab.id}`);
-            }
-            else {
-                generateTabs(tab, tabContent, level + 1, `${prefix}_${tab.id}`);
-            }
+            generateTabs(tab, tabContent, level + 1, `${prefix}_${tab.id}`);
         }
     });
 
@@ -99,6 +91,7 @@ function generateTabs(data, parentElement, level = 0, prefix = '') {
         const firstTabId = `${prefix}_${data.tabs[0].id}`;
         document.getElementById(firstTabId).style.display = 'block';
         tabContainer.querySelector('button').classList.add('active');
+        // console.log(level, firstTabId);
     }
 }
 
@@ -112,7 +105,7 @@ function generateInputFields(tab, contentArea) {
     if (tab.字段 && Array.isArray(tab.字段)) {
         try {
             // 输出日志信息
-            console.log(`${tab.id} ${tab.名称 ? `: ${tab.名称}` : ''}-->字段长度：${tab.字段.length}`);
+            // console.log(`${tab.id} ${tab.名称 ? `: ${tab.名称}` : ''}-->字段长度：${tab.字段.length}`);
 
             // 遍历 "字段" 数组
             tab.字段.forEach((field, index) => {
@@ -151,29 +144,6 @@ function generateInputFields(tab, contentArea) {
                 label.style.marginBottom = "5px"; // 添加一些间距
                 contentArea.appendChild(label);
             }
-
-            // // 创建按钮
-            // const button = document.createElement("button");
-            // button.textContent = "打印";
-            // button.style.marginLeft = "10px"; // 与输入框的间距
-            // button.style.width = "50px"; // 按钮宽度
-            // button.style.height = "25px"; // 按钮高度
-
-            // // 为按钮添加点击事件处理程序
-            // button.addEventListener("click", () => {
-            //     console.log(contentArea.children)
-            //     const inputValues = [];
-            //     for (let child of contentArea.children) {
-            //         if (child.tagName === "INPUT") {
-            //             const fieldKey = child.dataset.fieldKey; // 获取字段名称
-            //             const inputValue = child.value; // 获取输入值
-            //             console.log(`字段: ${fieldKey}, 输入值: ${inputValue}`);
-            //             inputValues.push({ fieldKey, inputValue });
-            //         }
-            //     }
-            //     console.log(inputValues);
-            // });
-            // contentArea.appendChild(button);
 
         } catch (error) {
             console.error(`在处理 ${tab.id} ${tab.名称 ? `: ${tab.名称}` : ''} 时发生错误:`, error);
@@ -249,8 +219,6 @@ function restrictHexInput(inputElement, maxBytes) {
 
 // 打开标签页的函数
 function openTab(evt, tabId) {
-    console.log(evt, "id", tabId);
-
     // 获取当前层级的所有内容
     const currentLevelContents = getCurrentLevelContents(evt.currentTarget);
 
@@ -268,10 +236,6 @@ function openTab(evt, tabId) {
     // 显示当前标签内容并添加active类
     document.getElementById(tabId).style.display = 'block';
     evt.currentTarget.classList.add('active');
-
-    // 同步标签页 Id
-    currentActivetabId = tabId;
-    console.log(currentActivetabId,tabId);
 }
 
 // 获取当前层级的所有内容元素
@@ -303,12 +267,12 @@ function getCurrentLevelButtons(buttonElement) {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("file.js");
 
-    fetchProtocol3762Data().then(result => {
-        console.log("第一步完成:", result);
-        const container = document.getElementById('tab-container');
-        generateTabs(result, container);
+    fetchProtocol3762Data()
+        .then(result => {
+            const container = document.getElementById('tab-container');
+            generateTabs(result, container);
 
-        // 创建按钮
+            // 创建按钮
             const button = document.createElement("button");
             button.textContent = "打印";
             // button.style.marginLeft = "10px"; // 与输入框的间距
@@ -317,20 +281,83 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // 为按钮添加点击事件处理程序
             button.addEventListener("click", () => {
-                console.log(currentActivetabId);
-                // const inputValues = [];
-                // for (let child of currentTarget.children) {
-                //     if (child.tagName === "INPUT") {
-                //         const fieldKey = child.dataset.fieldKey; // 获取字段名称
-                //         const inputValue = child.value; // 获取输入值
-                //         console.log(`字段: ${fieldKey}, 输入值: ${inputValue}`);
-                //         // inputValues.push({ fieldKey, inputValue });
-                //     }
-                // }
-                // console.log(inputValues);
+                try {
+                    // 从主容器开始遍历
+                    let currentContainer = container;
+                    const inputValues = []; // 存储收集到的输入值
+
+                    // 步骤1：寻找当前活动的内容容器
+                    // ----------------------------------------
+                    while (currentContainer) {
+                        let activeTab = null;
+
+                        // 1.1 先查找当前显示的tabcontent（标签页内容）
+                        for (let child of currentContainer.children) {
+                            if (child.className === "tabcontent" &&
+                                child.style.display === "block") {
+                                activeTab = child;
+                                break; // 找到后立即退出循环
+                            }
+                        }
+
+                        // 1.2 如果没找到活动标签页，尝试查找普通内容区
+                        if (!activeTab) {
+                            for (let child of currentContainer.children) {
+                                if (child.className === "content-area") {
+                                    currentContainer = child;
+                                    break; // 找到后立即退出循环
+                                }
+                            }
+                            break;// 如果都没找到，结束查找
+                        }
+
+                        currentContainer = activeTab; // 进入找到的活动标签页
+                    }
+
+                    // 步骤2：收集输入框数据
+                    // ----------------------------------------
+                    if (currentContainer) {
+                        // 2.1 查找所有带data-field-key属性的输入框
+                        const inputs = currentContainer.querySelectorAll("input[data-field-key]");
+
+                        inputs.forEach(input => {
+                            const fieldKey = input.dataset.fieldKey;
+                            const inputValue = input.value.trim(); // 去除首尾空格
+
+                            // 2.2 验证必填字段（可选）
+                            if (input.required && !inputValue) {
+                                input.style.border = "1px solid red"; // 标记错误字段
+                                console.warn(`【必填字段为空】字段名: ${fieldKey}`);
+                            }
+
+                            // 2.3 存储数据（包含字段名、值和DOM引用）
+                            inputValues.push({
+                                fieldKey,
+                                value: inputValue,
+                                element: input // 保留DOM引用便于后续操作
+                            });
+                        });
+
+                        // 2.4 处理无输入框的情况
+                        if (inputValues.length === 0) {
+                            console.warn("当前区域未找到任何输入字段");
+                        }
+                    } else {
+                        console.warn("未找到有效的内容容器");
+                    }
+
+                    // 步骤3：结果处理（可根据需要修改）
+                    // ----------------------------------------
+                    console.log("最终收集的数据:", inputValues);
+
+                } catch (error) {
+                    console.error("数据收集过程中出错:", error);
+                    // 可添加用户提示：
+                    // alert("系统繁忙，请稍后再试");
+                }
             });
             container.appendChild(button);
-    })
+        })
         .catch(error => {
             console.error("处理链中出错:", error);
         });

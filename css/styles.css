@@ -281,7 +281,7 @@ th {
 
 /* 嵌套标签缩进 */
 .nested-tab {
-  margin-left: 20px;
+  margin-left: 0px;
 }
 
 /* 内容区域样式 */
