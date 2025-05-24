@@ -47,6 +47,21 @@ function hexStringToBytes(hexStr) {
 }
 
 /**
+ * 从字符串中提取字节大小
+ * @param {string} inputStr 输入字符串（例如："4字节"）
+ * @param {number} [defaultSize=1] 默认字节大小（当无法提取时使用）
+ * @returns {number} 提取到的字节数
+ */
+function extractByteSize(inputStr, defaultSize = 1) {
+    if (typeof inputStr !== 'string') {
+        return defaultSize;
+    }
+
+    const match = inputStr.match(/(\d+)字节/);
+    return match ? parseInt(match[1], 10) : defaultSize;
+}
+
+/**
  * 将字节数组格式化为十六进制字符串
  * @param {Array<number>} bytes - 字节数组
  * @returns {string} 格式化的十六进制字符串
@@ -75,6 +90,20 @@ function calculateChecksum(bytes, start, end) {
     }
     return sum & 0xFF; // 返回校验和（取低8位）
 }
+
+/**
+ * 生成指定长度的十六进制格式的00填充字符串
+ * @param {number} size 要生成的字节长度 
+ * @returns {string} 十六进制字符串（如 "00 00 00"）
+ */
+function generateZeroHexString(size) {
+    if (!Number.isInteger(size)) {
+        throw new Error('Size must be an integer');
+    }
+
+    return Array.from({ length: size }, () => '00').join(' ');
+}
+
 
 /**
  * 计算校验和

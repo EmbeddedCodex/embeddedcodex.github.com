@@ -127,7 +127,7 @@ function generateInputFields(tab, contentArea) {
                 input.style.marginBottom = "10px"; // 添加一些间距
 
                 // 匹配字段长度，例如 "2字节"
-                const size = parseInt(fieldValue.match(/(\d+)字节/)?.[1] || '1', 10);
+                const size = extractByteSize(fieldValue);
                 // 限制16进制输入，带空格分隔，可限制最大字节数
                 restrictHexInput(input, size);
 
@@ -139,7 +139,7 @@ function generateInputFields(tab, contentArea) {
             // 空字段
             if (tab.字段.length === 0) {
                 const label = document.createElement("label");
-                label.textContent = `${tab.id} ${tab.名称 ? `: ${tab.名称}` : ''}-->空字段`;
+                label.textContent = `无数据标识内容。`;
                 label.style.display = "block"; // 每个字段占一行
                 label.style.marginBottom = "5px"; // 添加一些间距
                 contentArea.appendChild(label);
@@ -263,126 +263,7 @@ function getCurrentLevelButtons(buttonElement) {
     return Array.from(parentTab.querySelectorAll('.tablinks'));
 }
 
-
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log("file.js");
-
-    fetchProtocol3762Data()
-        .then(result => {
-            const container = document.getElementById('tab-container');
-            generateTabs(result, container);
-
-            // 创建按钮
-            const button = document.createElement("button");
-            button.textContent = "打印";
-            // button.style.marginLeft = "10px"; // 与输入框的间距
-            // button.style.width = "50px"; // 按钮宽度
-            // button.style.height = "25px"; // 按钮高度
-
-            // 为按钮添加点击事件处理程序
-            button.addEventListener("click", () => {
-                try {
-                    // 从主容器开始遍历
-                    let currentContainer = container;
-                    let targetId = [];
-                    const inputValues = []; // 存储收集到的输入值
-
-                    // 步骤1：寻找当前活动的内容容器
-                    // ----------------------------------------
-                    while (currentContainer) {
-                        let activeTab = null;
-
-                        // 1.1 先查找当前显示的tabcontent（标签页内容）
-                        for (let child of currentContainer.children) {
-                            if (child.className === "tabcontent" &&
-                                child.style.display === "block") {
-                                activeTab = child;
-                                break; // 找到后立即退出循环
-                            }
-                        }
-
-                        // 1.2 如果没找到活动标签页，尝试查找普通内容区
-                        if (!activeTab) {
-                            targetId = currentContainer.id;
-                            for (let child of currentContainer.children) {
-                                if (child.className === "content-area") {
-                                    currentContainer = child;
-                                    break; // 找到后立即退出循环
-                                }
-                            }
-                            break;// 如果都没找到，结束查找
-                        }
-
-                        currentContainer = activeTab; // 进入找到的活动标签页
-                    }
-
-                    // 步骤2：收集输入框数据
-                    // ----------------------------------------
-                    if (currentContainer) {
-                        // 2.1 查找所有带data-field-key属性的输入框
-                        const inputs = currentContainer.querySelectorAll("input[data-field-key]");
-
-                        inputs.forEach(input => {
-                            const fieldKey = input.dataset.fieldKey;
-                            const inputValue = input.value.trim(); // 去除首尾空格
-
-                            // 2.2 验证必填字段（可选）
-                            if (input.required && !inputValue) {
-                                input.style.border = "1px solid red"; // 标记错误字段
-                                console.warn(`【必填字段为空】字段名: ${fieldKey}`);
-                            }
-
-                            // 2.3 存储数据（包含字段名、值和DOM引用）
-                            inputValues.push({
-                                fieldKey,
-                                value: inputValue,
-                                element: input // 保留DOM引用便于后续操作
-                            });
-                        });
-
-                        // 最后一个单位存储组包重要信息
-                        inputValues.push({
-                            targetId,
-                            value: targetId.split('_').filter(Boolean),
-                            element: currentContainer // 保留DOM引用便于后续操作
-                        });
-
-                        // 2.4 处理无输入框的情况
-                        if (inputValues.length === 0) {
-                            console.warn("当前区域未找到任何输入字段");
-                        }
-                    } else {
-                        console.warn("未找到有效的内容容器");
-                    }
-
-                    // 步骤3：结果处理（可根据需要修改）
-                    // ----------------------------------------
-                    // console.log("最终收集的数据:", inputValues);
-                    if (inputValues) {
-                        // 生成 3762 帧包
-                        generateProtocol3762Packet(inputValues);
-                    }
-
-                } catch (error) {
-                    console.error("数据收集过程中出错:", error);
-                    // 可添加用户提示：
-                    // alert("系统繁忙，请稍后再试");
-                }
-            });
-            container.appendChild(button);
-
-            // 结果
-            const resultDiv = document.createElement("div");
-            resultDiv.id = "genResult";
-            container.appendChild(resultDiv);
-        })
-        .catch(error => {
-            console.error("处理链中出错:", error);
-        });
-
-    console.log("exit file.js");
-});
-
+// 生成 3762 协议包
 let seq = 0;
 function generateProtocol3762Packet(inputValues) {
     // 1. 数据预处理
@@ -464,3 +345,140 @@ function generateProtocol3762Packet(inputValues) {
     seq = (seq + 1) & 0xFF;
 }
 
+
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("file.js");
+
+    fetchProtocol3762Data()
+        .then(result => {
+            const container = document.getElementById('tab-container');
+            generateTabs(result, container);
+
+            // 创建按钮
+            const button = document.createElement("button");
+            button.textContent = "打印";
+            // button.style.marginLeft = "10px"; // 与输入框的间距
+            // button.style.width = "50px"; // 按钮宽度
+            // button.style.height = "25px"; // 按钮高度
+
+            // 为按钮添加点击事件处理程序
+            button.addEventListener("click", () => {
+                try {
+                    // 从主容器开始遍历
+                    let currentContainer = container;
+                    let targetId = [];
+                    const inputValues = []; // 存储收集到的输入值
+
+                    // 步骤1：寻找当前活动的内容容器
+                    // ----------------------------------------
+                    while (currentContainer) {
+                        let activeTab = null;
+
+                        // 1.1 先查找当前显示的tabcontent（标签页内容）
+                        for (let child of currentContainer.children) {
+                            if (child.className === "tabcontent" &&
+                                child.style.display === "block") {
+                                activeTab = child;
+                                break; // 找到后立即退出循环
+                            }
+                        }
+
+                        // 1.2 如果没找到活动标签页，尝试查找普通内容区
+                        if (!activeTab) {
+                            targetId = currentContainer.id;
+                            for (let child of currentContainer.children) {
+                                if (child.className === "content-area") {
+                                    currentContainer = child;
+                                    break; // 找到后立即退出循环
+                                }
+                            }
+                            break;// 如果都没找到，结束查找
+                        }
+
+                        currentContainer = activeTab; // 进入找到的活动标签页
+                    }
+
+                    // 步骤2：收集输入框数据
+                    // ----------------------------------------
+                    if (currentContainer) {
+                        // 2.1 查找所有带data-field-key属性的输入框
+                        const inputs = currentContainer.querySelectorAll("input[data-field-key]");
+
+                        inputs.forEach(input => {
+                            const fieldKey = input.dataset.fieldKey;
+                            let inputValue = input.value.trim(); // 去除首尾空格
+
+                            let dbg = [];
+                            dbg.push(input);
+                            dbg.push(fieldKey);
+                            dbg.push(inputValue);
+                            dbg.push(input.required);
+                            dbg.push(extractByteSize(input.placeholder));
+                            console.log(dbg);
+
+
+                            // 2.2 验证必填字段（可选）
+                            // if (input.required && !inputValue) {
+                            //     input.style.border = "1px solid red"; // 标记错误字段
+                            //     console.warn(`【必填字段为空】字段名: ${fieldKey}`);
+                            //     const userInput = prompt(`【必填字段为空】字段名: ${fieldKey}`);
+                            //     console.log(userInput);
+                            //     alert(`【必填字段为空】${fieldKey}`);
+                            // }
+                            if (!inputValue) {
+                                alert(`【必填字段为空】${fieldKey}，将默认填充零字节`);
+                                const size = extractByteSize(input.placeholder);
+                                inputValue = generateZeroHexString(size);
+                                input.value = inputValue;
+                            }
+
+                            // 2.3 存储数据（包含字段名、值和DOM引用）
+                            inputValues.push({
+                                fieldKey,
+                                value: inputValue,
+                                element: input // 保留DOM引用便于后续操作
+                            });
+                        });
+
+                        // 最后一个单位存储组包重要信息
+                        inputValues.push({
+                            targetId,
+                            value: targetId.split('_').filter(Boolean),
+                            element: currentContainer // 保留DOM引用便于后续操作
+                        });
+
+                        // 2.4 处理无输入框的情况
+                        if (inputValues.length === 0) {
+                            console.warn("当前区域未找到任何输入字段");
+                        }
+                    } else {
+                        console.warn("未找到有效的内容容器");
+                    }
+
+                    // 步骤3：结果处理（可根据需要修改）
+                    // ----------------------------------------
+                    // console.log("最终收集的数据:", inputValues);
+                    if (inputValues) {
+                        // 生成 3762 帧包
+                        generateProtocol3762Packet(inputValues);
+                    }
+
+                } catch (error) {
+                    console.error("数据收集过程中出错:", error);
+                    // 可添加用户提示：
+                    // alert("系统繁忙，请稍后再试");
+                }
+            });
+            container.appendChild(button);
+
+            // 结果
+            const resultDiv = document.createElement("div");
+            resultDiv.id = "genResult";
+            container.appendChild(resultDiv);
+        })
+        .catch(error => {
+            console.error("处理链中出错:", error);
+        });
+
+    console.log("exit file.js");
+});
