@@ -284,6 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 try {
                     // 从主容器开始遍历
                     let currentContainer = container;
+                    let targetId = [];
                     const inputValues = []; // 存储收集到的输入值
 
                     // 步骤1：寻找当前活动的内容容器
@@ -302,6 +303,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                         // 1.2 如果没找到活动标签页，尝试查找普通内容区
                         if (!activeTab) {
+                            targetId = currentContainer.id;
                             for (let child of currentContainer.children) {
                                 if (child.className === "content-area") {
                                     currentContainer = child;
@@ -338,6 +340,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                             });
                         });
 
+                        // 最后一个单位存储组包重要信息
+                        inputValues.push({
+                            targetId,
+                            value: targetId.split('_').filter(Boolean),
+                            element: currentContainer // 保留DOM引用便于后续操作
+                        });
+
                         // 2.4 处理无输入框的情况
                         if (inputValues.length === 0) {
                             console.warn("当前区域未找到任何输入字段");
@@ -348,7 +357,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     // 步骤3：结果处理（可根据需要修改）
                     // ----------------------------------------
-                    console.log("最终收集的数据:", inputValues);
+                    // console.log("最终收集的数据:", inputValues);
+                    if (inputValues) {
+                        // 生成 3762 帧包
+                        generateProtocol3762Packet(inputValues);
+                    }
 
                 } catch (error) {
                     console.error("数据收集过程中出错:", error);
@@ -357,6 +370,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
             container.appendChild(button);
+
+            // 结果
+            const resultDiv = document.createElement("div");
+            resultDiv.id = "genResult";
+            container.appendChild(resultDiv);
         })
         .catch(error => {
             console.error("处理链中出错:", error);
@@ -364,3 +382,85 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     console.log("exit file.js");
 });
+
+let seq = 0;
+function generateProtocol3762Packet(inputValues) {
+    // 1. 数据预处理
+    const lastItem = inputValues.at(-1);
+    if (!lastItem) {
+        console.error("输入数据为空");
+        return;
+    }
+
+    // 2. 提取有效数据
+    const data = inputValues
+        .filter(item => item.element?.tagName === "INPUT")  // 1. 过滤出 INPUT 元素
+        .flatMap(item => hexStringToBytes(item.value));     // 2. 提取 value 并直接转成字节数组 + 扁平化
+
+
+    console.log("有效数据:", data);
+
+    // 3. 构建帧
+    const frame = new Uint8Array(128); // 预分配空间
+    let pos = 0;
+
+    // 3.1 起始字符
+    frame[pos++] = 0x68;
+
+    // 预留长度位置（后面会更新）
+    const lengthPos = pos;
+    pos += 2;
+
+
+    // 3.2 控制域
+    const C = lastItem.value[2] === "下行报文" ? 0x80 : 0x40;
+    frame[pos++] = C;
+
+    // 3.3 地址域（示例值，需根据实际情况修改）
+    // 源地址 (6B)
+    // const sourceAddr = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06];
+    // sourceAddr.forEach(byte => frame[pos++] = byte);
+
+    // 目的地址 (6B)
+    // const destAddr = [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+    // destAddr.forEach(byte => frame[pos++] = byte);
+
+    // 3.4 应用功能码
+    const afn = hexStringToBytes(lastItem.value[1]);
+    afn.forEach(byte => frame[pos++] = byte);
+
+    // 3.5 帧序列域
+    frame[pos++] = seq;
+
+    // 3.6 数据标识
+    const di = hexStringToBytes(lastItem.value[3]).reverse();
+    di.forEach(byte => frame[pos++] = byte);
+
+    // 3.7 数据内容
+    data.forEach(byte => frame[pos++] = byte);
+
+    // 4. 计算校验和 (从控制域开始到数据结束)
+    const CS = calculateChecksum(frame, 3, pos);
+    frame[pos++] = CS;
+
+    // 5. 结束字符
+    frame[pos++] = 0x16;
+
+    // 6. 更新长度 (L = 整体长度)
+    const L = pos;
+    frame[lengthPos] = L & 0xFF;
+    frame[lengthPos + 1] = (L >> 8) & 0xFF;
+
+    // 7. 裁剪到实际长度
+    const finalFrame = frame.slice(0, pos);
+
+    // 8. 显示结果
+    const resultDiv = document.getElementById('genResult');
+    resultDiv.textContent = Array.from(finalFrame)
+        .map(b => b.toString(16).padStart(2, '0').toUpperCase())
+        .join(' ');
+
+    // 9. 更新序列号
+    seq = (seq + 1) & 0xFF;
+}
+
