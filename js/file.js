@@ -345,6 +345,183 @@ function generateProtocol3762Packet(inputValues) {
     seq = (seq + 1) & 0xFF;
 }
 
+// 添加单选项的函数
+function addRadioButtons(container) {
+    // 创建传输方向位 DIR 的选择器
+    const dirLabel = document.createElement('label');
+    dirLabel.htmlFor = 'dir';
+    dirLabel.textContent = '传输方向位 DIR:';
+    container.appendChild(dirLabel);
+
+    const dirSelect = document.createElement('select');
+    dirSelect.id = 'dir';
+    const dirOption0 = document.createElement('option');
+    dirOption0.value = '0';
+    dirOption0.textContent = '0 - 下行方向';
+    const dirOption1 = document.createElement('option');
+    dirOption1.value = '1';
+    dirOption1.textContent = '1 - 上行方向';
+    dirSelect.appendChild(dirOption0);
+    dirSelect.appendChild(dirOption1);
+    container.appendChild(dirSelect);
+    container.appendChild(document.createElement('br'));
+
+    // 创建启动标志位 PRM 的选择器
+    const prmLabel = document.createElement('label');
+    prmLabel.htmlFor = 'prm';
+    prmLabel.textContent = '启动标志位 PRM:';
+    container.appendChild(prmLabel);
+
+    const prmSelect = document.createElement('select');
+    prmSelect.id = 'prm';
+    const prmOption0 = document.createElement('option');
+    prmOption0.value = '0';
+    prmOption0.textContent = '0 - 从动站';
+    const prmOption1 = document.createElement('option');
+    prmOption1.value = '1';
+    prmOption1.textContent = '1 - 自动站';
+    prmSelect.appendChild(prmOption0);
+    prmSelect.appendChild(prmOption1);
+    container.appendChild(prmSelect);
+    container.appendChild(document.createElement('br'));
+
+    // 创建地址域标识 ADD 的选择器
+    const addLabel = document.createElement('label');
+    addLabel.htmlFor = 'add';
+    addLabel.textContent = '地址域标识 ADD:';
+    container.appendChild(addLabel);
+
+    const addSelect = document.createElement('select');
+    addSelect.id = 'add';
+    const addOption0 = document.createElement('option');
+    addOption0.value = '0';
+    addOption0.textContent = '0 - 不带地址域';
+    const addOption1 = document.createElement('option');
+    addOption1.value = '1';
+    addOption1.textContent = '1 - 带地址域';
+    addSelect.appendChild(addOption0);
+    addSelect.appendChild(addOption1);
+    container.appendChild(addSelect);
+    container.appendChild(document.createElement('br'));
+
+    // 创建协议版本号 VER 的选择器
+    const verLabel = document.createElement('label');
+    verLabel.htmlFor = 'ver';
+    verLabel.textContent = '协议版本号 VER:';
+    container.appendChild(verLabel);
+
+    const verSelect = document.createElement('select');
+    verSelect.id = 'ver';
+    for (let i = 0; i <= 3; i++) {
+        const verOption = document.createElement('option');
+        verOption.value = i;
+        verOption.textContent = i.toString();
+        verSelect.appendChild(verOption);
+    }
+    container.appendChild(verSelect);
+    container.appendChild(document.createElement('br'));
+}
+
+let slaveNodeCount = 1;
+
+function createControl(container) {
+
+    // 创建主节点地址输入框
+    const masterNodeLabel = document.createElement('label');
+    masterNodeLabel.htmlFor = 'masterNode';
+    masterNodeLabel.textContent = '主节点地址:';
+    container.appendChild(masterNodeLabel);
+
+    const masterNodeInput = document.createElement('input');
+    masterNodeInput.type = 'text';
+    masterNodeInput.id = 'masterNode';
+    masterNodeInput.placeholder = '输入主节点地址';
+    container.appendChild(masterNodeInput);
+
+    // 创建从节点地址输入框
+    // const slaveNodesContainer = document.getElementById('slaveNodesContainer');
+    const nodeContainer = document.createElement('div');
+    nodeContainer.id = 'slaveNodesContainer'
+    nodeContainer.className = 'node-container';
+
+    const slaveNodeCheckbox = document.createElement('input');
+    slaveNodeCheckbox.type = 'checkbox';
+    slaveNodeCheckbox.id = `slaveNode${slaveNodeCount}`;
+    slaveNodeCheckbox.checked = true;
+    nodeContainer.appendChild(slaveNodeCheckbox);
+
+    const slaveNodeLabel = document.createElement('label');
+    slaveNodeLabel.htmlFor = `slaveNode${slaveNodeCount}`;
+    slaveNodeLabel.textContent = '从节点地址:';
+    nodeContainer.appendChild(slaveNodeLabel);
+
+    const slaveNodeInput = document.createElement('input');
+    slaveNodeInput.type = 'text';
+    slaveNodeInput.id = `slaveNode${slaveNodeCount}`;
+    slaveNodeInput.placeholder = '输入从节点地址';
+    nodeContainer.appendChild(slaveNodeInput);
+
+    const addButton = document.createElement('button');
+    addButton.textContent = '+';
+    addButton.title = '添加从节点';
+    addButton.onclick = addSlaveNode;
+    nodeContainer.appendChild(addButton);
+
+    container.appendChild(nodeContainer);
+}
+
+function addSlaveNode() {
+    slaveNodeCount++;
+
+    const container = document.getElementById('slaveNodesContainer');
+    const newNodeContainer = document.createElement('div');
+    newNodeContainer.className = 'node-container';
+
+    const newNodeCheckbox = document.createElement('input');
+    newNodeCheckbox.type = 'checkbox';
+    newNodeCheckbox.id = `slaveNode${slaveNodeCount}`;
+    newNodeCheckbox.checked = true;
+    newNodeContainer.appendChild(newNodeCheckbox);
+
+    const newNodeLabel = document.createElement('label');
+    newNodeLabel.htmlFor = `slaveNode${slaveNodeCount}`;
+    newNodeLabel.textContent = '从节点地址:';
+    newNodeContainer.appendChild(newNodeLabel);
+
+    const newNodeInput = document.createElement('input');
+    newNodeInput.type = 'text';
+    newNodeInput.id = `slaveNode${slaveNodeCount}`;
+    newNodeInput.placeholder = '输入从节点地址';
+    newNodeContainer.appendChild(newNodeInput);
+
+    const removeButton = document.createElement('button');
+    removeButton.textContent = '-';
+    removeButton.title = '移除从节点';
+    removeButton.onclick = function () {
+        removeSlaveNode(slaveNodeCount);
+    };
+    newNodeContainer.appendChild(removeButton);
+
+    container.appendChild(newNodeContainer);
+    
+}
+
+function removeSlaveNode(nodeId) {
+    const container = document.getElementById('slaveNodesContainer');
+    if (nodeId === undefined) {
+        const nodes = container.getElementsByClassName('node-container');
+        if (nodes.length > 1) { // 保留至少一个从节点输入框
+            const lastNode = nodes[nodes.length - 1];
+            container.removeChild(lastNode);
+            slaveNodeCount--;
+        }
+    } else {
+        console.log(`slaveNode${nodeId}`);
+        const nodeToRemove = document.getElementById(`slaveNode${nodeId}`);
+        console.log(`${nodeToRemove}`);
+        container.removeChild(nodeToRemove.parentElement);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("file.js");
@@ -353,6 +530,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         .then(result => {
             const container = document.getElementById('tab-container');
             generateTabs(result, container);
+
+            // 创建选项
+            addRadioButtons(container);
+            createControl(container);
 
             // 创建按钮
             const button = document.createElement("button");
@@ -407,15 +588,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                         inputs.forEach(input => {
                             const fieldKey = input.dataset.fieldKey;
                             let inputValue = input.value.trim(); // 去除首尾空格
-
-                            let dbg = [];
-                            dbg.push(input);
-                            dbg.push(fieldKey);
-                            dbg.push(inputValue);
-                            dbg.push(input.required);
-                            dbg.push(extractByteSize(input.placeholder));
-                            console.log(dbg);
-
 
                             // 2.2 验证必填字段（可选）
                             // if (input.required && !inputValue) {
