@@ -498,29 +498,13 @@ function addSlaveNode() {
     removeButton.textContent = '-';
     removeButton.title = '移除从节点';
     removeButton.onclick = function () {
-        removeSlaveNode(slaveNodeCount);
+        container.removeChild(this.parentElement);
     };
     newNodeContainer.appendChild(removeButton);
 
     container.appendChild(newNodeContainer);
-    
-}
 
-function removeSlaveNode(nodeId) {
-    const container = document.getElementById('slaveNodesContainer');
-    if (nodeId === undefined) {
-        const nodes = container.getElementsByClassName('node-container');
-        if (nodes.length > 1) { // 保留至少一个从节点输入框
-            const lastNode = nodes[nodes.length - 1];
-            container.removeChild(lastNode);
-            slaveNodeCount--;
-        }
-    } else {
-        console.log(`slaveNode${nodeId}`);
-        const nodeToRemove = document.getElementById(`slaveNode${nodeId}`);
-        console.log(`${nodeToRemove}`);
-        container.removeChild(nodeToRemove.parentElement);
-    }
+    console.log(`new node ${slaveNodeCount}`);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
