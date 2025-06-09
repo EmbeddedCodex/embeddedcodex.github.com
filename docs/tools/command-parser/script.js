@@ -28,7 +28,7 @@ class ProtocolParser {
             case 'fixed':
                 return this.parseFixedField(field, bufferView, offset);
             case 'bytes':
-                return this.parseBytesField(field, bufferView, offset);
+                return this.parseBytesField(field, bufferView, offset, currentResult);
             case 'bits':
                 return this.parseBitsField(field, bufferView, offset);
             case 'dynamic':
@@ -54,7 +54,7 @@ class ProtocolParser {
         };
     }
 
-    parseBytesField(field, bufferView, offset) {
+    parseBytesField(field, bufferView, offset, currentResult) {
         let size = field.size;
         if (size === 'dynamic' && field.determinedBy) {
             size = currentResult[field.determinedBy];
@@ -65,9 +65,19 @@ class ProtocolParser {
             bytes.push(bufferView.getUint8(offset + i).toString(16).padStart(2, '0'));
         }
 
-        let value = bytes.join(' ');
-        if (field.format === 'bcd') {
-            value = this.parseBcd(bytes);
+        let value;
+        switch (field.format) {
+            case 'bcd':
+                value = this.parseBcd(bytes);
+                break;
+            case 'integer':
+                value = this.parseInteger(bytes, field.endianness);
+                break;
+            case 'float':
+                value = this.parseFloat(bytes, field.endianness);
+                break;
+            default: // 默认返回16进制字符串表示
+                value = bytes.map(b => b.toString(16).padStart(2, '0')).join(' ');
         }
 
         return {
@@ -137,6 +147,20 @@ class ProtocolParser {
         return result;
     }
 
+    parseInteger(bytes, endianness = 'big') {
+        let result = 0;
+        if (endianness === 'big') {
+            for (let i = 0; i < bytes.length; i++) {
+                result = (result << 8) | parseInt(bytes[i], 16); // 隐式转换对16进制无效
+            }
+        } else { // little endian
+            for (let i = bytes.length - 1; i >= 0; i--) {
+                result = (result << 8) | parseInt(bytes[i], 16);
+            }
+        }
+        return result;
+    }
+
     getFieldOffset(fieldName) {
         // 实现获取字段偏移量的逻辑
         // 简化版，实际需要根据协议定义计算
@@ -174,13 +198,14 @@ const dlt645Packet = new Uint8Array([
     0x04, 0x33, 0x33, 0x33, 0x33, 0xD2, 0x16 // ... 其他字段
 ]).buffer;
 
-// document.addEventListener('DOMContentLoaded', async () => {
-//     console.log("file.js");
-    // 加载并解析协议 config/protocols/frame/dlt645-2007.json
-    loadAndParseProtocol('../../config/protocols/frame/dlt645-2007.json', dlt645Packet)
-        .then(result => {
-            // 使用解析结果
-            displayResult(result);
-            console.log("sddsdsdsd")
-        });
-// });
+// 加载并解析协议 config/protocols/frame/dlt645-2007.json
+loadAndParseProtocol('../../config/protocols/frame/dlt645-2007.json', dlt645Packet)
+    .then(result => {
+        // 使用解析结果
+        // displayResult(result);
+        console.log(result)
+    });
+
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('docs/tools/command-parser/script.js');
+});
