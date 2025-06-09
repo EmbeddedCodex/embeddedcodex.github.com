@@ -47,10 +47,9 @@
         {
             "name": "dataLength",
             "description": "数据域长度",
-            "type": "dynamic",
+            "type": "bytes",
             "size": 1,
-            "reference": "data",
-            "operation": "length"
+            "format": "integer"
         },
         {
             "name": "data",
@@ -63,6 +62,7 @@
             "name": "checksum",
             "description": "校验和",
             "type": "checksum",
+            "size": 1,
             "algorithm": "sum8",
             "range": [
                 "start",
