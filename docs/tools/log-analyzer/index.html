@@ -122,9 +122,29 @@
                 worker.postMessage({ file, logType });
 
                 worker.onmessage = function (event) {
-                    const { result } = event.data;
-                    logResultArea.value = result;
-                    updateStatus(`解析完成，结果显示在下方`);
+                    const { chunk, start, done, error } = event.data;
+
+                    if (start) {
+                        logResultArea.value = '';
+                        updateStatus('开始处理数据');
+                        return;
+                    }
+
+                    if (error) {
+                        console.error(error);
+                        return;
+                    }
+
+                    if (chunk) {
+                        // console.log(chunk);
+                        logResultArea.value += chunk;
+                        return;
+                    }
+
+                    if (done) {
+                        updateStatus('所有数据已处理完成');
+                        return;
+                    }
                 };
 
                 worker.onerror = function (event) {

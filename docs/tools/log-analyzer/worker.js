@@ -6,7 +6,28 @@ self.onmessage = function (event) {
     reader.onload = function (event) {
         const arrayBuffer = event.target.result;
         const result = parseLogFile(arrayBuffer, logType);
-        self.postMessage({ result });
+        // self.postMessage({ result });
+        console.log(result);
+
+        // 将结果分段发送到主线程
+        const chunkSize = 20*1024; // 每次发送的数据量
+        let index = 0;
+
+        const sendNextChunk = () => {
+            const chunk = result.slice(index, index + chunkSize);
+            self.postMessage({ chunk });
+
+            index += chunkSize;
+            if (index < result.length) {
+                // 使用 setTimeout 来分段发送，避免阻塞主线程
+                setTimeout(sendNextChunk, 0);
+            } else {
+                self.postMessage({ done: true }); // 通知主线程数据发送完成
+            }
+        };
+
+        self.postMessage({ start: true }); // 通知主线程数据发送开始
+        sendNextChunk();
     };
 
     reader.onerror = function (event) {
