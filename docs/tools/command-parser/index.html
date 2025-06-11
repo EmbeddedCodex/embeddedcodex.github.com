@@ -33,7 +33,7 @@
                             <button id="clear-p3762-btn">清空</button>
                         </div>
                         <div class="col">
-                            <button id="save-template-btn">粘贴</button>
+                            <button id="paste-p3762-btn">粘贴</button>
                         </div>
                     </div>
                 </div>
@@ -163,6 +163,28 @@
             document.getElementById('clear-p698-btn').addEventListener('click', function () {
                 document.getElementById('p698-data').value = '';
             });
+            document.getElementById('clear-p698-btn').addEventListener('click',  (e) => {
+                document.getElementById('p698-data').value = '';
+                console.log(e.target); // 同上
+            });
+
+            // 粘贴按钮
+            async function pasteToInput(inputId) {
+                const inputElement = document.getElementById(inputId);
+
+                try {
+                    const text = await navigator.clipboard.readText();
+                    inputElement.value = text;
+                } catch (error) {
+                    console.error(`无法读取剪贴板内容到 ${inputId}:`, error);
+                    inputElement.value = '无法粘贴内容';
+                }
+            }
+
+            document.getElementById('paste-p3762-btn').addEventListener('click', () => pasteToInput('p3762-data'));
+            document.getElementById('paste-p645-btn').addEventListener('click', () => pasteToInput('p645-data'));
+            document.getElementById('paste-p698-btn').addEventListener('click', () => pasteToInput('p698-data'));
+
 
             // 更新状态栏
             function updateStatus(message) {
