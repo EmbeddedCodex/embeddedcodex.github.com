@@ -27,10 +27,10 @@
                         placeholder="输入16进制数据，如 68 2E 00 60 01 00 00 00 00 00 20 01 00 00 00 00 02 16 01 02 02 E8 02 00 83 08 07 10 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16 E5 16"></textarea>
                     <div class="row">
                         <div class="col">
-                            <button id="send-btn" class="btn-success">解析数据</button>
+                            <button id="parser-p3762-btn" class="btn-success">解析数据</button>
                         </div>
                         <div class="col">
-                            <button id="clear-send-btn">清空</button>
+                            <button id="clear-p3762-btn">清空</button>
                         </div>
                         <div class="col">
                             <button id="save-template-btn">粘贴</button>
@@ -38,36 +38,34 @@
                     </div>
                 </div>
                 <div id="protocol-645" class="tab-content">
-                    <label for="receive-data">HEX格式</label>
-                    <textarea id="receive-data" class="hex-textarea" readonly></textarea>
+                    <label for="p645-data">HEX格式</label>
+                    <textarea id="p645-data" class="hex-textarea"
+                        placeholder="输入16进制数据，如 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16"></textarea>
                     <div class="row">
                         <div class="col">
-                            <button id="parse-btn">解析数据</button>
+                            <button id="parser-p645-btn">解析数据</button>
                         </div>
                         <div class="col">
-                            <button id="clear-receive-btn">清空</button>
+                            <button id="clear-p645-btn">清空</button>
                         </div>
                         <div class="col">
-                            <button id="save-receive-btn">粘贴</button>
+                            <button id="paste-p645-btn">粘贴</button>
                         </div>
                     </div>
                 </div>
                 <div id="protocol-698" class="tab-content">
-                    <label for="receive-data">HEX格式</label>
-                    <div id="history-list">
-                        <!-- 历史记录将通过JavaScript动态填充 -->
-                        <div class="data-item">
-                            <div class="data-item-header">2023-05-15 14:30:25 - DL/T645读数据</div>
-                            <div>发送: 68 11 11 11 11 11 11 68 11 04 33 33 33 33 16</div>
-                            <div>接收: 68 11 11 11 11 11 11 68 91 08 33 33 33 33 33 33 33 33 16</div>
-                        </div>
-                    </div>
+                    <label for="p698-data">HEX格式</label>
+                    <textarea id="p698-data" class="hex-textarea" class="hex-textarea"
+                        placeholder="输入16进制数据，如 68 18 00 43 26 01 30 01 00 00 00 00 A1 83 EE 05 01 02 20 00 02 01 00 6B AF 16"></textarea>
                     <div class="row">
                         <div class="col">
-                            <button id="clear-history-btn">清空历史</button>
+                            <button id="parser-p698-btn">解析数据</button>
                         </div>
                         <div class="col">
-                            <button id="export-history-btn">导出历史</button>
+                            <button id="clear-p698-btn">清空</button>
+                        </div>
+                        <div class="col">
+                            <button id="paste-p698-btn">粘贴</button>
                         </div>
                     </div>
                 </div>
@@ -134,76 +132,8 @@
                 });
             });
 
-            // 组包按钮
-            document.getElementById('build-frame-btn').addEventListener('click', function () {
-                const protocol = document.getElementById('protocol-select').value;
-                const frameType = document.getElementById('frame-type').value;
-                const address = document.getElementById('address').value;
-                const dataId = document.getElementById('data-identifier').value;
-                const dataValue = document.getElementById('data-value').value;
-
-                if (!address) {
-                    updateStatus('请输入设备地址');
-                    return;
-                }
-
-                let frame = '';
-
-                // 模拟不同协议的组包
-                if (protocol.includes('645')) {
-                    // DL/T645协议组包
-                    frame = build645Frame(address, frameType, dataId, dataValue);
-                } else if (protocol.includes('698')) {
-                    // DL/T698协议组包
-                    frame = build698Frame(address, frameType, dataId, dataValue);
-                } else if (protocol.includes('376')) {
-                    // DL/T376协议组包
-                    frame = build376Frame(address, frameType, dataId, dataValue);
-                } else {
-                    frame = '自定义协议组包功能待实现';
-                }
-
-                document.getElementById('send-data').value = frame;
-                updateStatus(`已生成 ${protocol} ${frameType} 帧`);
-            });
-
-            // 发送按钮
-            document.getElementById('send-btn').addEventListener('click', function () {
-                const data = document.getElementById('send-data').value.trim();
-
-                if (!data) {
-                    updateStatus('请输入要发送的数据');
-                    return;
-                }
-
-                updateStatus(`发送: ${data}`);
-
-                // 模拟接收数据
-                setTimeout(() => {
-                    // 根据协议生成模拟响应
-                    const protocol = document.getElementById('protocol-select').value;
-                    let response = '';
-
-                    if (protocol.includes('645')) {
-                        response = simulate645Response(data);
-                    } else if (protocol.includes('698')) {
-                        response = simulate698Response(data);
-                    } else if (protocol.includes('376')) {
-                        response = simulate376Response(data);
-                    } else {
-                        response = '00 01 02 03 04 05 06 07 08 09 0A';
-                    }
-
-                    document.getElementById('receive-data').value = response;
-                    updateStatus(`收到响应: ${response}`);
-
-                    // 添加到历史记录
-                    addToHistory(data, response, protocol);
-                }, 500);
-            });
-
             // 解析按钮
-            document.getElementById('parse-btn').addEventListener('click', function () {
+            document.getElementById('parser-p3762-btn').addEventListener('click', function () {
                 const data = document.getElementById('receive-data').value.trim();
                 const protocol = document.getElementById('protocol-select').value;
 
@@ -222,39 +152,21 @@
             });
 
             // 清空按钮
-            document.getElementById('clear-send-btn').addEventListener('click', function () {
-                document.getElementById('send-data').value = '';
+            document.getElementById('clear-p3762-btn').addEventListener('click', function () {
+                document.getElementById('p3762-data').value = '';
             });
 
-            document.getElementById('clear-receive-btn').addEventListener('click', function () {
-                document.getElementById('receive-data').value = '';
+            document.getElementById('clear-p645-btn').addEventListener('click', function () {
+                document.getElementById('p645-data').value = '';
             });
 
-            document.getElementById('clear-history-btn').addEventListener('click', function () {
-                document.getElementById('history-list').innerHTML = '<p>历史记录已清空</p>';
+            document.getElementById('clear-p698-btn').addEventListener('click', function () {
+                document.getElementById('p698-list').value = '';
             });
 
             // 更新状态栏
             function updateStatus(message) {
                 document.getElementById('status-bar').textContent = message;
-            }
-
-            // 添加到历史记录
-            function addToHistory(sendData, receiveData, protocol) {
-                const historyList = document.getElementById('history-list');
-                const now = new Date();
-                const timestamp = now.toLocaleString();
-
-                const item = document.createElement('div');
-                item.className = 'data-item';
-
-                item.innerHTML = `
-                    <div class="data-item-header">${timestamp} - ${protocol}</div>
-                    <div>发送: ${sendData}</div>
-                    <div>接收: ${receiveData}</div>
-                `;
-
-                historyList.insertBefore(item, historyList.firstChild);
             }
 
             // 以下是模拟协议组包和解析的函数
@@ -340,7 +252,7 @@
                 return frame;
             }
 
-            function build376Frame(address, frameType, dataId, dataValue) {
+            function build3762Frame(address, frameType, dataId, dataValue) {
                 // 简化的DL/T376组包逻辑
                 let frame = '68 ';
 
@@ -375,26 +287,6 @@
                 frame += '16';
 
                 return frame;
-            }
-
-            function simulate645Response(request) {
-                // 简化的DL/T645响应模拟
-                if (request.includes('11 04')) { // 读数据
-                    return '68 11 11 11 11 11 11 68 91 08 33 33 33 33 33 33 33 33 16';
-                } else if (request.includes('14 04')) { // 写数据
-                    return '68 11 11 11 11 11 11 68 94 00 16';
-                }
-                return '68 11 11 11 11 11 11 68 91 08 90 10 F0 00 12 34 56 78 16';
-            }
-
-            function simulate698Response(request) {
-                // 简化的DL/T698响应模拟
-                return '68 0B 00 00 00 80 01 04 11 11 11 11 00 01 08 90 10 F0 00 12 34 56 78 16';
-            }
-
-            function simulate376Response(request) {
-                // 简化的DL/T376响应模拟
-                return '68 11 11 11 11 11 11 68 81 08 90 10 F0 00 12 34 56 78 XX 16';
             }
         });
     </script>
