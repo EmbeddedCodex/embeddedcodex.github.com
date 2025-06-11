@@ -1,5 +1,172 @@
-<html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电网协议日志工具</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
 <body>
-<h1>日志分析</h1>
+    <div class="container">
+        <h1>电网协议日志数据工具</h1>
+
+        <!-- 日志分析工具 -->
+        <div class="section log-section">
+            <div class="section-title">日志分析工具</div>
+            <div class="row">
+                <div class="col">
+                    <label for="log-file">选择日志文件</label>
+                    <input type="file" id="log-file" accept=".txt,.bin">
+                </div>
+                <div class="col">
+                    <label for="log-type">日志类型</label>
+                    <select id="log-type">
+                        <option value="machine-log">机台日志</option>
+                        <option value="module-log-txt">模块日志 (txt)</option>
+                        <option value="module-log-bin">模块日志 (bin)</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label>&nbsp;</label>
+                    <button id="analyze-log-btn" class="btn-success">解析日志</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label>文件类型</label>
+                    <input type="text" id="file-type" readonly placeholder="文件类型">
+                </div>
+                <div class="col">
+                    <label>文件大小</label>
+                    <input type="text" id="file-size" readonly placeholder="文件大小">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label for="log-result">解析结果</label>
+                    <textarea id="log-result" class="hex-textarea" readonly placeholder="解析结果将显示在这里..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态栏 -->
+        <div class="status-bar" id="status-bar">
+            就绪
+        </div>
+    </div>
+
+    <script>
+        // 这里将实现所有功能逻辑
+        document.addEventListener('DOMContentLoaded', function () {
+
+            document.getElementById('log-file').addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const fileType = getFileType(file.name); // 根据文件扩展名获取文件类型
+                    const fileSize = getFileSize(file.size); // 转换文件大小为易读格式
+                    document.getElementById('file-type').value = fileType;
+                    document.getElementById('file-size').value = fileSize;
+                } else {
+                    document.getElementById('file-type').value = '';
+                    document.getElementById('file-size').value = '';
+                }
+            });
+
+
+            // 根据文件扩展名获取文件类型
+            function getFileType(fileName) {
+                const extension = fileName.split('.').pop().toLowerCase();
+                switch (extension) {
+                    case 'txt':
+                        return '文本文件';
+                    case 'bin':
+                        return '二进制文件';
+                    default:
+                        return '未知文件类型';
+                }
+            }
+
+            // 文件大小格式化函数
+            function getFileSize(size) {
+                if (size < 1024) {
+                    return size + ' B';
+                } else if (size < 1024 * 1024) {
+                    return (size / 1024).toFixed(2) + ' KB';
+                } else if (size < 1024 * 1024 * 1024) {
+                    return (size / (1024 * 1024)).toFixed(2) + ' MB';
+                } else {
+                    return (size / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+                }
+            }
+
+            // 日志分析工具逻辑
+            document.getElementById('analyze-log-btn').addEventListener('click', function () {
+                const logFileInput = document.getElementById('log-file');
+                const logTypeSelect = document.getElementById('log-type');
+                const logResultArea = document.getElementById('log-result');
+
+                const file = logFileInput.files[0];
+                const logType = logTypeSelect.value;
+
+                if (!file) {
+                    updateStatus('请选择一个日志文件');
+                    return;
+                }
+
+                updateStatus(`正在解析 ${logType} 日志...`);
+
+                // 根据文件类型和日志类型进行解析
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const fileContent = event.target.result;
+
+                    let result = '';
+                    if (logType === 'machine-log') {
+                        result = analyzeMachineLog(fileContent);
+                    } else if (logType === 'module-log-txt') {
+                        result = analyzeModuleLogTxt(fileContent);
+                    } else if (logType === 'module-log-bin') {
+                        result = analyzeModuleLogBin(fileContent);
+                    }
+
+                    logResultArea.value = result;
+                    updateStatus(`解析完成，结果显示在下方`);
+                };
+
+                if (file.type === 'application/octet-stream') {
+                    reader.readAsArrayBuffer(file); // 二进制文件
+                } else {
+                    reader.readAsText(file); // 文本文件
+                }
+            });
+
+            // 示例解析函数
+            function analyzeMachineLog(content) {
+                // 示例：简单解析机台日志
+                return content.split('\n').map(line => `解析行：${line}`).join('\n');
+            }
+
+            function analyzeModuleLogTxt(content) {
+                // 示例：简单解析模块日志 (txt)
+                return content.split('\n').map(line => `模块日志：${line}`).join('\n');
+            }
+
+            function analyzeModuleLogBin(content) {
+                // 示例：简单解析模块日志 (bin)
+                const bytes = new Uint8Array(content);
+                return Array.from(bytes).map(byte => byte.toString(16).padStart(2, '0')).join(' ');
+            }
+
+
+            // 更新状态栏
+            function updateStatus(message) {
+                document.getElementById('status-bar').textContent = message;
+            }
+
+        });
+    </script>
 </body>
+
 </html>
