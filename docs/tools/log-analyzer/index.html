@@ -51,12 +51,22 @@
             </div>
         </div>
 
+        <h1>Mermaid 流程图示例</h1>
+        <div class="mermaid">
+            graph TD
+            A[开始] --> B{是或否}
+            B -->|是| C[继续]
+            B -->|否| D[结束]
+        </div>
+
         <!-- 状态栏 -->
         <div class="status-bar" id="status-bar">
             就绪
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="worker.js"></script>
     <script>
         // 这里将实现所有功能逻辑
         document.addEventListener('DOMContentLoaded', function () {
@@ -117,39 +127,48 @@
 
                 updateStatus(`正在解析 ${logType} 日志...`);
 
-                // 使用Web Worker处理文件解析
-                const worker = new Worker('worker.js');
-                worker.postMessage({ file, logType });
+                // // 使用Web Worker处理文件解析
+                // const worker = new Worker('worker.js');
+                // worker.postMessage({ file, logType });
 
-                worker.onmessage = function (event) {
-                    const { chunk, start, done, error } = event.data;
+                // worker.onmessage = function (event) {
+                //     const { chunk, start, done, error } = event.data;
 
-                    if (start) {
-                        logResultArea.value = '';
-                        updateStatus('开始处理数据');
-                        return;
-                    }
+                //     if (start) {
+                //         logResultArea.value = '';
+                //         updateStatus('开始处理数据');
+                //         return;
+                //     }
 
-                    if (error) {
-                        console.error(error);
-                        return;
-                    }
+                //     if (error) {
+                //         console.error(error);
+                //         return;
+                //     }
 
-                    if (chunk) {
-                        // console.log(chunk);
-                        logResultArea.value += chunk;
-                        return;
-                    }
+                //     if (chunk) {
+                //         // console.log(chunk);
+                //         logResultArea.value += chunk;
+                //         return;
+                //     }
 
-                    if (done) {
-                        updateStatus('所有数据已处理完成');
-                        return;
-                    }
-                };
+                //     if (done) {
+                //         updateStatus('所有数据已处理完成');
+                //         return;
+                //     }
+                // };
 
-                worker.onerror = function (event) {
-                    console.error('Worker error:', event);
-                    updateStatus('解析失败');
+                // worker.onerror = function (event) {
+                //     console.error('Worker error:', event);
+                //     updateStatus('解析失败');
+                // };
+
+                // 根据文件类型和日志类型进行解析
+                const reader = new FileReader();
+                reader.readAsArrayBuffer(file);
+                reader.onload = function (event) {
+                    const fileContent = event.target.result;
+                    parseLogFile(fileContent, logType);
+                    updateStatus(`解析完成，结果显示在下方`);
                 };
             });
 
@@ -158,6 +177,11 @@
                 document.getElementById('status-bar').textContent = message;
             }
 
+        });
+
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default'
         });
     </script>
 </body>
