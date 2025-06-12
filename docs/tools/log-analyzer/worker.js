@@ -147,22 +147,41 @@ function analyzeModuleLogCCO(arrayBuffer) {
     // 示例：简单解析模块日志 (txt)
     const decoder = new TextDecoder('utf-8');
     const text = decoder.decode(bytes);
-    
+
+    // 开始解析数据
     let match;
-    const results = [];
     const regex = /\[(.*?) \| +(\d+)\| *([A-F0-9]+|Tx|Rx)\](.*)/g;
+    const allResults = []; // 用于存储所有分段的数据
+    let currentSegment = []; // 当前段落的数据
 
     while ((match = regex.exec(text)) !== null) {
         const [fullMatch, time, milliseconds, dataType, rawData] = match;
-        results.push({
+        const parsedData = {
             time: time.trim(),
             milliseconds: parseInt(milliseconds.trim(), 10),
             dataType: dataType.trim(),
             rawData: rawData.trim()
-        });
+        };
+
+        // 如果 dataType 是 "1000"，表示新的一段数据
+        if (dataType === "1000") {
+            // 如果当前段落不为空，保存到 allResults 中
+            if (currentSegment.length > 0) {
+                allResults.push(currentSegment);
+                currentSegment = []; // 开始新的段落
+            }
+        }
+
+        // 将当前解析的数据添加到当前段落
+        currentSegment.push(parsedData);
+    }
+    // 不要忘记保存最后一段数据
+    if (currentSegment.length > 0) {
+        allResults.push(currentSegment);
     }
 
-    console.log(results.length);
+    console.log(allResults);
+
 
 
 
