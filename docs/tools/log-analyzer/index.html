@@ -23,9 +23,9 @@
                 <div class="col">
                     <label for="log-type">日志类型</label>
                     <select id="log-type">
+                        <option value="module-log-cco">集中器模块日志 (CCO)</option>
+                        <option value="module-log-sta">智能表模块日志 (STA)</option>
                         <option value="machine-log">机台日志</option>
-                        <option value="module-log-txt">模块日志 (txt)</option>
-                        <option value="module-log-bin">模块日志 (bin)</option>
                     </select>
                 </div>
                 <div class="col">
@@ -51,12 +51,14 @@
             </div>
         </div>
 
-        <h1>Mermaid 流程图示例</h1>
-        <div class="mermaid">
-            graph TD
-            A[开始] --> B{是或否}
-            B -->|是| C[继续]
-            B -->|否| D[结束]
+        <div class="section log-section">
+            <div class="section-title">Mermaid 流程图示例</div>
+            <div class="mermaid">
+                graph TD
+                A[开始] --> B{是或否}
+                B -->|是| C[继续]
+                B -->|否| D[结束]
+            </div>
         </div>
 
         <!-- 状态栏 -->

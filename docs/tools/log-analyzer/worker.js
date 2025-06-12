@@ -40,10 +40,10 @@ function parseLogFile(arrayBuffer, logType) {
 
     if (logType === 'machine-log') {
         result = analyzeMachineLog(arrayBuffer);
-    } else if (logType === 'module-log-txt') {
-        result = analyzeModuleLogTxt(arrayBuffer);
-    } else if (logType === 'module-log-bin') {
-        result = analyzeModuleLogBin(arrayBuffer);
+    } else if (logType === 'module-log-cco') {
+        result = analyzeModuleLogCCO(arrayBuffer);
+    } else if (logType === 'module-log-sta') {
+        result = analyzeModuleLogSTA(arrayBuffer);
     }
 
     return result;
@@ -142,15 +142,35 @@ function analyzeMachineLog(arrayBuffer) {
     // return text.split('\n').map(line => `${line}`).join('\n');
 }
 
-function analyzeModuleLogTxt(arrayBuffer) {
+function analyzeModuleLogCCO(arrayBuffer) {
     const bytes = new Uint8Array(arrayBuffer);
     // 示例：简单解析模块日志 (txt)
     const decoder = new TextDecoder('utf-8');
     const text = decoder.decode(bytes);
+    
+    let match;
+    const results = [];
+    const regex = /\[(.*?) \| +(\d+)\| *([A-F0-9]+|Tx|Rx)\](.*)/g;
+
+    while ((match = regex.exec(text)) !== null) {
+        const [fullMatch, time, milliseconds, dataType, rawData] = match;
+        results.push({
+            time: time.trim(),
+            milliseconds: parseInt(milliseconds.trim(), 10),
+            dataType: dataType.trim(),
+            rawData: rawData.trim()
+        });
+    }
+
+    console.log(results.length);
+
+
+
+
     return text.split('\n').map(line => `${line}`).join('\n');
 }
 
-function analyzeModuleLogBin(arrayBuffer) {
+function analyzeModuleLogSTA(arrayBuffer) {
     const bytes = new Uint8Array(arrayBuffer);
     // 示例：简单解析模块日志 (bin)
     return Array.from(bytes).map(byte => byte.toString(16).padStart(2, '0')).join(' ');
