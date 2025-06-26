@@ -6,6 +6,8 @@ let currentPage = 1;
 const rowsPerPage = 100;
 let filteredData = [];
 
+let typeChart, timeChart;
+
 function analyzeModuleLogCCO(arrayBuffer) {
     const bytes = new Uint8Array(arrayBuffer);
     // 示例：简单解析模块日志 (txt)
@@ -49,6 +51,7 @@ function analyzeModuleLogCCO(arrayBuffer) {
 
     // 更新
     renderGroupTabs();
+    renderDashboard();
     renderTable();
     renderPagination();
 
@@ -74,6 +77,7 @@ function renderGroupTabs() {
             currentGroupIndex = index;
             currentPage = 1;
             renderGroupTabs();
+            renderDashboard();
             renderTable();
             renderPagination();
         });
@@ -233,6 +237,178 @@ function renderPagination() {
     const info = document.createElement('span');
     info.textContent = `共 ${currentGroup.length} 条数据`;
     pagination.appendChild(info);
+}
+
+function renderDashboard() {
+    const currentGroup = allGroups[currentGroupIndex];
+
+    // 统计类型分布
+    const typeCounts = {};
+    currentGroup.forEach(row => {
+        const type = row[2];
+        typeCounts[type] = (typeCounts[type] || 0) + 1;
+    });
+
+    // 统计时间分布 (按小时)
+    const timeCounts = Array(24).fill(0);
+    currentGroup.forEach(row => {
+        const date = convertToUTC(row[0]);
+        const hour = date.getHours();
+        timeCounts[hour]++;
+    });
+
+    // 渲染图表
+    renderTypeChart(typeCounts);
+    renderTimeChart(timeCounts);
+
+    // 渲染统计信息
+    renderStats(currentGroup);
+
+    // 渲染抽样数据
+    renderSampleData(currentGroup);
+}
+
+function renderTypeChart(typeCounts) {
+    const ctx = document.getElementById('typeChart').getContext('2d');
+    const labels = Object.keys(typeCounts);
+    const data = Object.values(typeCounts);
+
+    if (typeChart) {
+        typeChart.destroy();
+    }
+
+    typeChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: [
+                    '#4CAF50',
+                    '#2196F3',
+                    '#FFC107',
+                    '#FF5722',
+                    '#9C27B0'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+function renderTimeChart(timeCounts) {
+    const ctx = document.getElementById('timeChart').getContext('2d');
+    const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+
+    if (timeChart) {
+        timeChart.destroy();
+    }
+
+    timeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '数据量',
+                data: timeCounts,
+                backgroundColor: '#4CAF50'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function renderStats(data) {
+    const statsGrid = document.getElementById('statsGrid');
+    statsGrid.innerHTML = '';
+
+    // 计算各种统计信息
+    const millis = data.map(row => convertToUTC(row[0]).getTime());
+    const minTime = Math.min(...millis);
+    const maxTime = Math.max(...millis);
+    const avgTime = millis.reduce((a, b) => a + b, 0) / millis.length;
+
+    const types = [...new Set(data.map(row => row[2]))];
+
+    // 添加统计项
+    addStatItem('总数据量', data.length);
+    addStatItem('最早时间', new Date(minTime).toLocaleString());
+    addStatItem('最晚时间', new Date(maxTime).toLocaleString());
+    addStatItem('平均时间', new Date(avgTime).toLocaleString());
+    addStatItem('类型数量', types.length);
+    addStatItem('数据密度', `${(data.length / ((maxTime - minTime) / 1000)).toFixed(2)}条/秒`);
+    addStatItem('时间跨度', `${((maxTime - minTime) / (1000 * 60 * 60)).toFixed(2)}小时`);
+    addStatItem('最大类型', Object.entries(
+        data.reduce((acc, row) => {
+            acc[row[2]] = (acc[row[2]] || 0) + 1;
+            return acc;
+        }, {})
+    ).sort((a, b) => b[1] - a[1])[0][0]);
+}
+
+function addStatItem(label, value) {
+    const statsGrid = document.getElementById('statsGrid');
+    const item = document.createElement('div');
+    item.className = 'stat-item';
+    item.innerHTML = `<div>${label}</div><div class="stat-value">${value}</div>`;
+    statsGrid.appendChild(item);
+}
+
+function renderSampleData(data) {
+    const sampleContainer = document.getElementById('sampleData');
+    sampleContainer.innerHTML = '';
+
+    const sampleSize = Math.min(50, data.length);
+    for (let i = 0; i < sampleSize; i++) {
+        const row = data[i];
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #eee';
+
+        [row[0], row[1], row[2], row[3]].forEach(cell => {
+            const td = document.createElement('td');
+            td.style.padding = '8px';
+            td.textContent = cell;
+            tr.appendChild(td);
+        });
+
+        sampleContainer.appendChild(tr);
+    }
+}
+
+/**
+ * 将自定义格式的日期时间字符串转换为 UTC 时间
+ * @param {string} dateString - 日期时间字符串，格式为 "YYYY-MM-DD HH:MM:SS 000"
+ * @returns {string} - 转换后的 UTC 时间，格式为 ISO 8601
+ */
+function convertToUTC(dateString) {
+    // 解析字符串
+    const [datePart, timePart, millisecondPart] = dateString.split(' ');
+    const [year, month, day] = datePart.split('-');
+    const [hours, minutes, seconds] = timePart.split(':');
+    const milliseconds = millisecondPart.trim() || '000';
+
+    // 创建 Date 对象
+    const date = new Date(Date.UTC(year, month - 1, day, hours - 8, minutes, seconds, milliseconds));
+
+    // 原始字符串：2025-06-11 01:44:26 000
+    // console.log(date); // 输出解析后的日期对象 Wed Jun 11 2025 01:44:26 GMT+0800 (中国标准时间)
+    // console.log(date.toISOString()); // 输出 ISO 8601 格式的日期字符串 2025-06-10T17:44:26.000Z
+    // console.log(date.toLocaleString()); // 输出本地时间格式 2025/6/11 01:44:26
+
+    // 转换为 ISO 8601 格式的 UTC 时间
+    // return date.toISOString();
+    return date;
 }
 
 // 暴露处理函数

@@ -45,8 +45,46 @@
             </div>
         </div>
 
-        <div class="section protocol-section" id="protocolSection" >
+        <div class="section protocol-section" id="protocolSection">
             <div class="group-tabs" id="groupTabs"></div>
+
+            <div class="dashboard">
+                <div class="card">
+                    <h3>类型分布</h3>
+                    <div class="chart-container">
+                        <canvas id="typeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>时间分布</h3>
+                    <div class="chart-container">
+                        <canvas id="timeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>数据统计</h3>
+                    <div class="stats-grid" id="statsGrid"></div>
+                </div>
+
+                <div class="card">
+                    <h3>原始数据抽样 (前50条)</h3>
+                    <div style="height: 300px; overflow: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8f8f8;">
+                                    <th style="padding: 10px; border-bottom: 1px solid #ddd;">RTC时间</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #ddd;">毫秒数</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #ddd;">数据类型</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #ddd;">原始数据</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sampleData"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
             <div class="search-controls">
                 <input type="text" id="searchInput" placeholder="搜索...（1000,Rx,Tx...）">
@@ -64,7 +102,7 @@
                 <table id="dataTable">
                     <thead>
                         <tr>
-                            <th>时间</th>
+                            <th>RTC时间</th>
                             <th>毫秒数</th>
                             <th>数据类型</th>
                             <th>原始数据</th>
@@ -83,6 +121,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="script.js"></script>
 
 </body>
