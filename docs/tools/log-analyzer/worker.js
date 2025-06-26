@@ -182,7 +182,12 @@ function analyzeModuleLogCCO(arrayBuffer) {
         }
 
         // 将当前解析的数据添加到当前段落
-        currentSegment.push(parsedData);
+        currentSegment.push([
+            time.trim(),
+            parseInt(milliseconds.trim(), 10),
+            dataType.trim(),
+            rawData.trim()
+        ]);
     }
     // 不要忘记保存最后一段数据
     if (currentSegment.length > 0) {
@@ -354,9 +359,9 @@ function renderTable() {
         const row = currentGroup[i];
         const tr = document.createElement('tr');
 
-        Object.keys(row).forEach(key => {
+        row.forEach(cell => {
             const td = document.createElement('td');
-            td.textContent = row[key];
+            td.textContent = cell;
             tr.appendChild(td);
         });
 
