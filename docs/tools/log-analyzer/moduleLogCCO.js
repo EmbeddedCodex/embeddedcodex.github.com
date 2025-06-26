@@ -133,6 +133,25 @@ function renderTable() {
         const row = currentGroup[i];
         const tr = document.createElement('tr');
 
+        // 为每一行添加点击事件监听器
+        tr.addEventListener('click', () => {
+            // 获取被点击行的数据
+            const rowData = currentGroup[i];
+            const protocolSection = document.getElementById('protocolSection');
+            const parseResult = document.getElementById('parse-result');
+            parseResult.innerHTML = '';
+
+            console.log('Clicked row data:', rowData);
+            // 可以在这里处理行数据，例如显示详细信息或触发其他操作
+            addToParseResult("RTC时间", rowData[0]);
+            addToParseResult("毫秒数", rowData[1]);
+            addToParseResult("数据类型", rowData[2]);
+            addToParseResult("原始数据", rowData[3]);
+
+            // todo: 需要添加 result 判断？
+            protocolSection.style.display = 'block'; // 显示解析结果部分
+        });
+
         row.forEach(cell => {
             const td = document.createElement('td');
             td.textContent = cell;
@@ -409,6 +428,30 @@ function convertToUTC(dateString) {
     // 转换为 ISO 8601 格式的 UTC 时间
     // return date.toISOString();
     return date;
+}
+
+// 创建 data-item 元素
+function createDataItem(header, content) {
+    const dataItem = document.createElement('div');
+    dataItem.classList.add('data-item');
+
+    const dataItemHeader = document.createElement('div');
+    dataItemHeader.classList.add('data-item-header');
+    dataItemHeader.textContent = header;
+    dataItem.appendChild(dataItemHeader);
+
+    const dataItemContent = document.createElement('div');
+    dataItemContent.textContent = content;
+    dataItem.appendChild(dataItemContent);
+
+    return dataItem;
+}
+
+// 将 data-item 添加到 parse-result
+function addToParseResult(header, content) {
+    const parseResult = document.getElementById('parse-result');
+    const dataItem = createDataItem(header, content);
+    parseResult.appendChild(dataItem);
 }
 
 // 暴露处理函数

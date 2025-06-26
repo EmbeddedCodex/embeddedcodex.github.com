@@ -120,8 +120,10 @@ textarea {
 }
 
 .data-section {
-    background-color: #f0f8e8;
-    border-left-color: #2ecc71;
+    display: none;
+    /* 默认隐藏 */
+    background-color: #f8f8f8; /* 浅灰色背景 */
+    border-left-color: #9b59b6; /* 紫色边框 */
 }
 
 .log-section {

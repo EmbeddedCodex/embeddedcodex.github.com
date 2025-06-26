@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 日志文件解析函数
     function parseLogFile(fileContent, logType) {
         let result = '';
-        const protocolSection = document.getElementById('protocolSection');
+        const dataSection = document.getElementById('dataSection');
 
         if (logType === 'machine-log') {
             result = analyzeMachineLog(fileContent);
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // todo: 需要添加 result 判断？
-        protocolSection.style.display = 'block'; // 显示解析结果部分
+        dataSection.style.display = 'block'; // 显示解析结果部分
 
         return result;
     }
