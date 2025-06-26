@@ -83,19 +83,28 @@ function renderGroupTabs() {
 
 // 过滤数据
 function filterData() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const searchTerms = searchInput.split(',')
+        .map(term => term.trim()) // 去除每个关键词前后的空格
+        .filter(term => term !== ''); // 去除空字符串
     const filterColumn = document.getElementById('filterColumn').value;
     const currentGroup = allGroups[currentGroupIndex];
 
-    if (!searchTerm) {
-        filteredData = currentGroup;
+    if (!searchTerms) {
+        filteredData = currentGroup; // 如果没有搜索词，返回所有数据
     } else {
         filteredData = currentGroup.filter(row => {
             if (filterColumn === 'all') {
-                return row.some(cell => cell.toString().toLowerCase().includes(searchTerm));
+                // 搜索所有列
+                return searchTerms.some(term => {
+                    return row.some(cell => cell.toString().toLowerCase().includes(term));
+                })
             } else {
+                // 搜索特定列
                 const colIndex = parseInt(filterColumn);
-                return row[colIndex].toString().toLowerCase().includes(searchTerm);
+                return searchTerms.some(term => {
+                    return row[colIndex].toString().toLowerCase().includes(term);
+                })
             }
         });
     }
