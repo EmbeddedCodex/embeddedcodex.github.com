@@ -74,7 +74,7 @@ button {
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.3s;
-    margin-top: 10px;
+    /* margin-top: 10px; */
 }
 
 button:hover {
@@ -188,15 +188,18 @@ textarea {
 
 .group-tabs {
     display: flex;
+    overflow: auto; /* 添加滚动条 */
     gap: 10px;
     margin-bottom: 20px;
 }
 
 .group-tab {
+    width: auto;
     padding: 10px 15px;
     background: #f0f0f0;
     border-radius: 5px;
     cursor: pointer;
+    margin-bottom: 10px;
 }
 
 .group-tab.active {
@@ -239,23 +242,19 @@ tr:hover {
     gap: 10px;
 }
 
-input,
-select {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
 .pagination {
+    height: 29px;
     display: flex;
     gap: 5px;
     margin-top: 10px;
 }
 
 .pagination button {
+    width: auto;
     padding: 5px 10px;
     border: 1px solid #ddd;
     background: white;
+    color: black;
     cursor: pointer;
 }
 
