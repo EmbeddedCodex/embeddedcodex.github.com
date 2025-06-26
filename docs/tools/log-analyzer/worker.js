@@ -354,9 +354,9 @@ function renderTable() {
         const row = currentGroup[i];
         const tr = document.createElement('tr');
 
-        row.forEach(cell => {
+        Object.keys(row).forEach(key => {
             const td = document.createElement('td');
-            td.textContent = cell;
+            td.textContent = row[key];
             tr.appendChild(td);
         });
 
