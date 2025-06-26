@@ -113,6 +113,7 @@ textarea {
 }
 
 .protocol-section {
+    display: none; /* 默认隐藏 */
     background-color: #e8f4fc;
     border-left-color: #2980b9;
 }
@@ -188,7 +189,8 @@ textarea {
 
 .group-tabs {
     display: flex;
-    overflow: auto; /* 添加滚动条 */
+    overflow: auto;
+    /* 添加滚动条 */
     gap: 10px;
     margin-bottom: 20px;
 }
@@ -200,6 +202,9 @@ textarea {
     border-radius: 5px;
     cursor: pointer;
     margin-bottom: 10px;
+
+    /* 防止内容换行 */
+    white-space: nowrap;
 }
 
 .group-tab.active {
@@ -219,11 +224,30 @@ table {
     border-collapse: collapse;
 }
 
+th:nth-child(1) {
+    width: 20%;
+}
+
+th:nth-child(2) {
+    width: 10%;
+}
+
+th:nth-child(3) {
+    width: 10%;
+}
+
+th:nth-child(4) {
+    width: 60%;
+}
+
 th,
 td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #ddd;
+
+    /* 防止内容换行 */
+    white-space: nowrap;
 }
 
 th {
