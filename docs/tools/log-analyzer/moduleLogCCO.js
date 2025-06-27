@@ -8,6 +8,9 @@ let filteredData = [];
 
 let typeChart, timeChart;
 
+// 加载日志定义 (通过fetch从服务器获取)
+let logDefinitions;
+
 function analyzeModuleLogCCO(arrayBuffer) {
     const bytes = new Uint8Array(arrayBuffer);
     // 示例：简单解析模块日志 (txt)
@@ -142,13 +145,8 @@ function renderTable() {
             parseResult.innerHTML = '';
 
             console.log('Clicked row data:', rowData);
-            // 可以在这里处理行数据，例如显示详细信息或触发其他操作
-            addToParseResult("RTC时间", rowData[0]);
-            addToParseResult("毫秒数", rowData[1]);
-            addToParseResult("数据类型", rowData[2]);
-            addToParseResult("原始数据", rowData[3]);
+            parseLogCCO(convertToHex(rowData[2]), rowData[3], addToParseResult);
 
-            // todo: 需要添加 result 判断？
             protocolSection.style.display = 'block'; // 显示解析结果部分
         });
 
@@ -453,6 +451,212 @@ function addToParseResult(header, content) {
     const dataItem = createDataItem(header, content);
     parseResult.appendChild(dataItem);
 }
+
+async function loadLogDefinitions(url) {
+    try {
+        const response = await fetch(url);
+        logDefinitions = await response.json();
+    } catch (e) {
+        console.error("加载日志定义失败:", e);
+    }
+}
+
+/**
+ * 将十六进制字符串转换为带有 0x 前缀的 4 字节十六进制字符串
+ * @param {string} hexString - 十六进制字符串（不带 0x 前缀）
+ * @returns {string} - 带有 0x 前缀的 4 字节十六进制字符串
+ */
+function convertToHex(hexString) {
+    // 确保输入是有效的十六进制字符串
+    if (!/^[0-9A-Fa-f]+$/.test(hexString)) {
+        throw new Error('Invalid hexadecimal string');
+    }
+
+    // 使用 parseInt 将十六进制字符串转换为数字
+    const hexNumber = parseInt(hexString, 16);
+
+    // 将数字转换为带有 0x 前缀的 4 字节十六进制字符串
+    const formattedHex = hexNumber.toString(16).padStart(4, '0').toLowerCase();
+
+    return `0x${formattedHex}`;
+}
+
+// 解析多字节值(考虑字节序)
+function parseMultiByte(data, offset, size, endian = 'big') {
+    // 创建一个 DataView 来处理字节数据
+    const dataView = new DataView(new Uint8Array(data).buffer, offset, size);
+
+    // 根据大小端模式读取值
+    if (size === 4) {
+        return dataView.getUint32(0, endian === 'little');
+    } else if (size === 2) {
+        return dataView.getUint16(0, endian === 'little');
+    } else if (size === 1) {
+        return dataView.getUint8(0);
+    } else {
+        throw new Error('Unsupported size');
+    }
+}
+
+// 显示值格式化
+function formatValue(value, field) {
+    let result = '';
+    const rawValue = value;
+
+    // 应用缩放因子
+    if (field.scale) {
+        value *= field.scale;
+    }
+
+    // 枚举映射
+    if (field.enum && field.enum[rawValue.toString()] !== undefined) {
+        value = field.enum[rawValue.toString()];
+    }
+
+    // 根据显示设置格式化
+    switch (field.display) {
+        case 'hex':
+            if (field.type.includes('int') || field.type.includes('uint')) {
+                result = `0x${rawValue.toString(16).toUpperCase()}`;
+            } else {
+                result = value;
+            }
+            break;
+
+        case 'both':
+            if (field.type.includes('int') || field.type.includes('uint')) {
+                result = `${value} (0x${rawValue.toString(16).toUpperCase()})`;
+            } else {
+                result = value;
+            }
+            break;
+
+        default: // 'dec' or undefined
+            result = value;
+    }
+
+    // 添加单位
+    if (field.unit) {
+        result += ` ${field.unit}`;
+    }
+
+    return result;
+}
+
+// 解析日志函数
+function parseLogCCO(logId, rawDataInput, cb) {
+    // 验证输入
+    if (!logId || !rawDataInput) {
+        alert("请输入日志ID和原始数据");
+        return;
+    }
+
+    // 转换原始数据为字节数组
+    let rawData;
+    try {
+        // 处理逗号或空格分隔的hex数据
+        const hexStr = rawDataInput.replace(/0x/g, '').replace(/,/g, ' ').replace(/\s+/g, ' ');
+        const hexArray = hexStr.split(' ').filter(x => x.length > 0);
+        rawData = hexArray.map(x => parseInt(x, 16));
+
+        if (rawData.some(isNaN)) {
+            throw new Error("包含非十六进制数据");
+        }
+    } catch (e) {
+        alert("原始数据格式错误: " + e.message);
+        return;
+    }
+
+    // 查找日志定义
+    const logDef = logDefinitions.log_definitions[logId];
+    if (!logDef) {
+        alert("未找到日志ID " + logId + " 的定义");
+        return;
+    }
+
+    // 处理变长日志
+    let variantDef = logDef;
+    if (logDef.variants) {
+        const headerByte = rawData[0].toString(16);
+        variantDef = logDef.variants.find(v => v.header === '0x' + headerByte);
+        if (!variantDef) {
+            alert("未找到匹配的日志变体");
+            return;
+        }
+
+        if (rawData.length !== variantDef.length) {
+            alert(`日志长度不匹配，预期 ${variantDef.length} 字节，实际 ${rawData.length} 字节`);
+            return;
+        }
+    }
+
+    // 解析各字段
+    variantDef.fields.forEach(field => {
+        try {
+            let value;
+            let rawValue = '';
+
+            // 根据字段类型解析
+            switch (field.type) {
+                case 'BIN':
+                    value = parseMultiByte(rawData, field.offset, field.size, field.endian || 'big');
+                    rawValue = toUpperCaseHex(value, field.size * 2);
+
+                case 'string':
+                    value = '';
+                    for (let i = 0; i < field.length; i++) {
+                        const charCode = rawData[field.offset + i];
+                        if (charCode === 0) break;
+                        value += String.fromCharCode(charCode);
+                        rawValue += `0x${charCode.toString(16).padStart(2, '0').toUpperCase()} `;
+                    }
+                    rawValue = rawValue.trim();
+                    break;
+
+                case 'bitfield':
+                    const byteValue = rawData[field.offset];
+                    rawValue = `0x${byteValue.toString(16).padStart(2, '0').toUpperCase()}`;
+
+                    value = [];
+                    field.bits.forEach(bit => {
+                        const bitValue = (byteValue & (1 << bit.bit)) !== 0;
+                        value.push(`${bit.name}: ${bitValue ? '是' : '否'}`);
+                    });
+                    value = value.join(', ');
+                    break;
+
+                default:
+                    value = "未知类型";
+                    rawValue = "N/A";
+            }
+
+            // valueCell.textContent = Array.isArray(value) ? value.join(', ') : value;
+            // rawCell.textContent = rawValue;
+
+            cb(field.name, rawValue);
+
+        } catch (e) {
+            cb("解析错误", "N/A");
+            console.error(`解析字段 ${field.name} 时出错:`, e);
+        }
+    });
+}
+
+/**
+ * 将数字转换为指定长度的十六进制字符串（大写）
+ * @param {number} value - 要转换的数字
+ * @param {number} [length=2] - 十六进制字符串的长度，默认为 2
+ * @returns {string} - 指定长度的十六进制字符串（大写）
+ */
+function toUpperCaseHex(value, length = 2) {
+    return value.toString(16).padStart(length, '0').toUpperCase();
+}
+
+// 模块加载时自动执行初始化代码
+(function () {
+    console.log('CcoLog 模块加载完成');
+    loadLogDefinitions('./log_definitions.json');
+})();
 
 // 暴露处理函数
 export { analyzeModuleLogCCO };

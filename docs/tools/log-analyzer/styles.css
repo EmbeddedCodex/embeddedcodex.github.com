@@ -115,15 +115,17 @@ textarea {
 .protocol-section {
     display: none;
     /* 默认隐藏 */
-    background-color: #e8f4fc;
-    border-left-color: #2980b9;
+    background-color: #f8f8f8;
+    /* 浅灰色背景 */
+    border-left-color: #9b59b6;
+    /* 紫色边框 */
 }
 
 .data-section {
     display: none;
     /* 默认隐藏 */
-    background-color: #f8f8f8; /* 浅灰色背景 */
-    border-left-color: #9b59b6; /* 紫色边框 */
+    background-color: #e8f4fc;
+    border-left-color: #2980b9;
 }
 
 .log-section {

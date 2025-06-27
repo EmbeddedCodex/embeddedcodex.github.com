@@ -6,37 +6,51 @@
             "fields": [
                 {
                     "name": "MCU外部版本",
-                    "type": "uint16",
+                    "type": "BIN",
+                    "size": 2,
+                    "endian": "big",
                     "offset": 2
                 },
                 {
                     "name": "MCU内部版本",
-                    "type": "uint16",
+                    "type": "BIN",
+                    "size": 2,
+                    "endian": "big",
                     "offset": 4
                 },
                 {
                     "name": "DSP版本",
-                    "type": "uint16",
+                    "type": "BIN",
+                    "size": 2,
+                    "endian": "big",
                     "offset": 9
                 },
                 {
                     "name": "Bootloader版本",
-                    "type": "uint16",
+                    "type": "BIN",
+                    "size": 2,
+                    "endian": "big",
                     "offset": 12
                 },
                 {
                     "name": "HGID",
-                    "type": "uint16",
+                    "type": "BIN",
+                    "size": 2,
+                    "endian": "big",
                     "offset": 15
                 },
                 {
                     "name": "重启模式",
-                    "type": "uint8",
+                    "type": "BIN",
+                    "size": 1,
+                    "endian": "big",
                     "offset": 18
                 },
                 {
                     "name": "特征码",
-                    "type": "uint32",
+                    "type": "BIN",
+                    "size": 4,
+                    "endian": "big",
                     "offset": 19
                 }
             ]
