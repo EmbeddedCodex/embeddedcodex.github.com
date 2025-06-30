@@ -1,0 +1,36 @@
+# 文件路径：.github/workflows/static.yml
+name: Staitc Pages Workflow
+
+# 触发条件：推送代码到 hplc 分支
+on:
+  push:
+    branches:
+      - hplc
+
+jobs:
+  test-job:
+    runs-on: ubuntu-latest  # 在最新的 Ubuntu 环境中运行
+
+    steps:
+      - name: Checkout code  # 第一步：检出代码
+        uses: actions/checkout@v3
+
+      - name: Print a message  # 第二步：打印消息
+        run: echo "Hello, this is a test workflow!"
+
+      - name: Create a file  # 第三步：创建文件
+        run: |
+          echo "This is a test file created by GitHub Actions." > test.txt
+
+      # - name: Move file to docs directory  # 第四步：将文件移动到 docs 目录
+      #   run: |
+      #     mkdir -p docs  # 确保 docs 目录存在
+      #     mv test.txt docs/  # 将文件移动到 docs 目录
+
+      # - name: Commit and push the file  # 第五步：提交并推送文件
+      #   run: |
+      #     git config --global user.name "github-actions[bot]"  # 设置 Git 用户名
+      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"  # 设置 Git 邮箱
+      #     git add docs/test.txt  # 添加文件到暂存区
+      #     git commit -m "Add test file to docs"  # 提交文件
+      #     git push  # 推送文件到远程仓库
