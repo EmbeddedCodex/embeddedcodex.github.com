@@ -1,74 +1,150 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <!-- 设置字符编码为UTF-8 -->
     <meta charset="UTF-8">
-    <!-- 使网页在移动设备上自适应 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 网页标题 -->
-    <title>协议帧格式工具</title>
-    <!-- 引入外部CSS样式文件 -->
-    <link rel="stylesheet" href="css/styles.css">
+    <title>HPLC 工具集 - 主控制面板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            background-color: #2c3e50;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .card-desc {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
-
 <body>
-    <!-- <header>
-        <h1>协议帧格式工具</h1>
-        <p>支持 DL/T 376.2、DL/T 645 和 DL/T 698 协议的帧格式。</p>
-    </header> -->
-
-    <!-- 主容器，用于布局 -->
-    <div class="main-container">
-
-        <!-- 侧边栏，用于切换协议 -->
-        <div id="protocol-sidebar" class="sidebar"></div>
-
-        <!-- 内容区域，显示协议解析界面 -->
-        <div id="protocol-content-area" class="content-area">
-
-            <!-- 选项标签 -->
-            <div id="protocol-tab-container" class="tab-container"></div>
-
-            <!-- 标签页内容 -->
-            <div id="parseTab" class="tab-content">
-                <!-- 376.2协议内容 -->
-                <section id="protocol-3762" class="protocol-section active"></section>
-
-                <!-- 645协议内容 -->
-                <section id="protocol-645" class="protocol-section"></section>
-
-                <!-- 698协议内容 -->
-                <section id="protocol-698" class="protocol-section"></section>
+    <div class="container">
+        <header>
+            <h1>HPLC 工具集</h1>
+            <p class="subtitle">多功能协议调试与分析工具</p>
+        </header>
+        
+        <div class="dashboard">
+            <div class="card" onclick="location.href='tools/serial-tool/index.html'">
+                <div class="card-icon">🔌</div>
+                <h2 class="card-title">串口工具</h2>
+                <p class="card-desc">通过串口与电表通信，发送和接收数据</p>
             </div>
-
-            <div id="generateTab" class="tab-content">
-                <!-- 376.2协议内容 -->
-                <section id="gen-protocol-3762" class="protocol-section active"></section>
-
-                <!-- 645协议内容 -->
-                <section id="gen-protocol-645" class="protocol-section"></section>
-
-                <!-- 698协议内容 -->
-                <section id="gen-protocol-698" class="protocol-section"></section>
+            
+            <div class="card" onclick="location.href='tools/command-parser/index.html'">
+                <div class="card-icon">📖</div>
+                <h2 class="card-title">电表指令解析</h2>
+                <p class="card-desc">解析电表返回的指令数据，转换为可读信息</p>
             </div>
-
+            
+            <div class="card" onclick="location.href='tools/command-generator/index.html'">
+                <div class="card-icon">⚙️</div>
+                <h2 class="card-title">电表指令生成</h2>
+                <p class="card-desc">根据需求生成电表控制指令</p>
+            </div>
+            
+            <div class="card" onclick="location.href='tools/log-analyzer/index.html'">
+                <div class="card-icon">📊</div>
+                <h2 class="card-title">日志分析</h2>
+                <p class="card-desc">分析电表运行日志，发现潜在问题</p>
+            </div>
+            
+            <div class="card" onclick="location.href='tools/monitor-analyzer/index.html'">
+                <div class="card-icon">👁️</div>
+                <h2 class="card-title">监控器分析</h2>
+                <p class="card-desc">实时监控电表状态，分析运行数据</p>
+            </div>
+            
+            <div class="card" onclick="location.href='tools/settings/index.html'">
+                <div class="card-icon">⚙️</div>
+                <h2 class="card-title">系统设置</h2>
+                <p class="card-desc">配置工具参数和个性化设置</p>
+            </div>
         </div>
-
-        <div id="tab-container"></div>
+        
+        <footer>
+            <p>© 2025 HPLC 工具集 | 版本 1.0.0</p>
+        </footer>
     </div>
-
-    <!-- 主JS文件 -->
-    <script src="js/file.js"></script>
-    <script src="js/main.js"></script>
-    <!-- 376.2协议解析JS文件 -->
-    <script src="js/parser-3762.js"></script>
-    <!-- 645协议解析JS文件 -->
-    <script src="js/parser-645.js"></script>
-    <!-- 698协议解析JS文件 -->
-    <script src="js/parser-698.js"></script>
-    <!-- 生成376.2协议的JS文件 -->
-    <script src="js/generate-3762.js"></script>
 </body>
-
 </html>
