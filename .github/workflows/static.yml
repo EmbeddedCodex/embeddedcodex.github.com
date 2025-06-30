@@ -37,9 +37,9 @@ jobs:
         rsync -av --exclude='*.js' --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='docs' ./ docs/
         echo "File structure preserved and copied to docs/"
 
-    # - name: Deploy to GitHub Pages (optional)
-    #   if: success()
-    #   uses: peaceiris/actions-gh-pages@v3
-    #   with:
-    #     github_token: ${{ secrets.GITHUB_TOKEN }}
-    #     publish_dir: ./docs
+    - name: Deploy to GitHub Pages (optional)
+      if: success()
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
