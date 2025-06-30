@@ -26,7 +26,7 @@ jobs:
 
     - name: Obfuscate JS files
       run: |
-        find . -type f -name "*.js" ! -path "./node_modules/*" ! -path "./docs/*" | while read -r jsfile; do
+        find . -type f -name "*.js" ! -path "./.git/*" ! -path "./.github/*" ! -path "./node_modules/*" ! -path "./docs/*" | while read -r jsfile; do
           mkdir -p "docs/$(dirname "$jsfile")"
           terser "$jsfile" -o "docs/$jsfile"
           echo "Obfuscated: $jsfile"
@@ -34,12 +34,12 @@ jobs:
 
     - name: Copy non-JS files
       run: |
-        rsync -av --exclude='*.js' --exclude='node_modules' --exclude='docs' ./ docs/
+        rsync -av --exclude='*.js' --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='docs' ./ docs/
         echo "File structure preserved and copied to docs/"
 
-    - name: Deploy to GitHub Pages (optional)
-      if: success()
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs
+    # - name: Deploy to GitHub Pages (optional)
+    #   if: success()
+    #   uses: peaceiris/actions-gh-pages@v3
+    #   with:
+    #     github_token: ${{ secrets.GITHUB_TOKEN }}
+    #     publish_dir: ./docs
