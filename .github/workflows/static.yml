@@ -1,36 +1,45 @@
-# 文件路径：.github/workflows/static.yml
-name: Staitc Pages Workflow
+name: Obfuscate and Deploy
 
-# 触发条件：推送代码到 hplc 分支
 on:
   push:
-    branches:
-      - hplc
+    branches: [ hplc ]
+  workflow_dispatch:
 
 jobs:
-  test-job:
-    runs-on: ubuntu-latest  # 在最新的 Ubuntu 环境中运行
+  obfuscate-and-deploy:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code  # 第一步：检出代码
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Print a message  # 第二步：打印消息
-        run: echo "Hello, this is a test workflow!"
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
 
-      - name: Create a file  # 第三步：创建文件
-        run: |
-          echo "This is a test file created by GitHub Actions." > test.txt
+    - name: Install Terser
+      run: npm install terser -g
 
-      # - name: Move file to docs directory  # 第四步：将文件移动到 docs 目录
-      #   run: |
-      #     mkdir -p docs  # 确保 docs 目录存在
-      #     mv test.txt docs/  # 将文件移动到 docs 目录
+    - name: Create docs directory
+      run: mkdir -p docs
 
-      # - name: Commit and push the file  # 第五步：提交并推送文件
-      #   run: |
-      #     git config --global user.name "github-actions[bot]"  # 设置 Git 用户名
-      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"  # 设置 Git 邮箱
-      #     git add docs/test.txt  # 添加文件到暂存区
-      #     git commit -m "Add test file to docs"  # 提交文件
-      #     git push  # 推送文件到远程仓库
+    - name: Obfuscate JS files
+      run: |
+        find . -type f -name "*.js" ! -path "./node_modules/*" ! -path "./docs/*" | while read -r jsfile; do
+          mkdir -p "docs/$(dirname "$jsfile")"
+          terser "$jsfile" -o "docs/$jsfile"
+          echo "Obfuscated: $jsfile"
+        done
+
+    - name: Copy non-JS files
+      run: |
+        rsync -av --exclude='*.js' --exclude='node_modules' --exclude='docs' ./ docs/
+        echo "File structure preserved and copied to docs/"
+
+    - name: Deploy to GitHub Pages (optional)
+      if: success()
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
