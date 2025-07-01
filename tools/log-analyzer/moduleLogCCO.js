@@ -356,7 +356,7 @@ function renderStats(data) {
         if (num < minTime) minTime = num;
     }
     // const maxTime = Math.max(...millis);
-    let maxTime = Infinity;
+    let maxTime = -Infinity; // 初始值设为负无穷
     for (const num of millis) {
         if (num > maxTime) maxTime = num;
     }
