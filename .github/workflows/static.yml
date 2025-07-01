@@ -18,8 +18,8 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Install Terser
-      run: npm install terser -g
+    - name: Install javascript-obfuscator
+      run: npm install javascript-obfuscator -g
 
     - name: Create build directory
       run: mkdir -p build
@@ -28,7 +28,26 @@ jobs:
       run: |
         find . -type f -name "*.js" ! -path "./.git/*" ! -path "./.github/*" ! -path "./node_modules/*" ! -path "./docs/*" | while read -r jsfile; do
           mkdir -p "build/$(dirname "$jsfile")"
-          terser "$jsfile" -o "build/$jsfile"
+          javascript-obfuscator "$jsfile" \
+          --output "build/$jsfile" \
+          --compact true \
+          --control-flow-flattening true \
+          --control-flow-flattening-threshold 0.75 \
+          --dead-code-injection true \
+          --dead-code-injection-threshold 0.4 \
+          --debug-protection true \
+          --debug-protection-interval true \
+          --disable-console-output true \
+          --identifier-names-generator hexadecimal \
+          --log false \
+          --rename-globals true \
+          --rotate-string-array true \
+          --self-defending true \
+          --string-array true \
+          --string-array-encoding rc4 \
+          --string-array-threshold 0.75 \
+          --transform-object-keys true \
+          --unicode-escape-sequence false
           echo "Obfuscated: $jsfile"
         done
 
