@@ -218,7 +218,7 @@ textarea {
 }
 
 .table-container {
-    height: 600px;
+    height: 300px;
     overflow: auto;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -266,9 +266,34 @@ tr:hover {
 }
 
 .search-controls {
-    margin-bottom: 15px;
     display: flex;
-    gap: 10px;
+    align-items: center; /* 垂直居中对齐 */
+    gap: 10px; /* 子元素之间的间隔 */
+    margin-bottom: 15px;
+}
+
+.search-controls input,
+.search-controls select,
+.search-controls button {
+    flex: 1; /* 允许元素在容器内灵活伸缩 */
+    min-width: 0; /* 防止 flex 项目不能缩小到其内容的尺寸以下 */
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.search-controls button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.search-controls button:hover {
+    background-color: #2980b9;
 }
 
 .pagination {
@@ -311,6 +336,7 @@ tr:hover {
 
 .chart-container {
     height: 300px;
+    max-width: 100%; /* 确保在小屏幕上不会超出容器宽度 */
 }
 
 .stats-grid {
@@ -329,4 +355,27 @@ tr:hover {
     font-size: 24px;
     font-weight: bold;
     color: #4CAF50;
+}
+
+@media (max-width: 768px) {
+    .dashboard {
+        grid-template-columns: 1fr; /* 单列布局 */
+    }
+}
+
+@media (max-width: 600px) {
+    .search-controls {
+        flex-direction: column; /* 在小屏幕上堆叠显示 */
+    }
+
+    .search-controls input,
+    .search-controls select,
+    .search-controls button {
+        width: 100%; /* 使每个元素占据整行 */
+        margin-bottom: 10px; /* 为每个元素添加底部外边距 */
+    }
+
+    .search-controls button {
+        margin-bottom: 0; /* 移除最后一个元素的底部外边距 */
+    }
 }
