@@ -26,34 +26,34 @@ jobs:
 
     - name: Obfuscate JS files
       run: |
-        find . -type f -name "*.js" ! -path "./.git/*" ! -path "./.github/*" ! -path "./node_modules/*" ! -path "./docs/*" | while read -r jsfile; do
+        find . -type f -name "*.js" ! -path "./.git/*" ! -path "./.github/*" ! -path "./node_modules/*" ! -path "./docs/*" ! -path "./build/*" | while read -r jsfile; do
           mkdir -p "build/$(dirname "$jsfile")"
           javascript-obfuscator "$jsfile" \
-          --output "build/$jsfile" \
-          --compact true \
-          --control-flow-flattening true \
-          --control-flow-flattening-threshold 0.75 \
-          --dead-code-injection true \
-          --dead-code-injection-threshold 0.4 \
-          --debug-protection true \
-          --debug-protection-interval true \
-          --disable-console-output true \
-          --identifier-names-generator hexadecimal \
-          --log false \
-          --rename-globals true \
-          --rotate-string-array true \
-          --self-defending true \
-          --string-array true \
-          --string-array-encoding rc4 \
-          --string-array-threshold 0.75 \
-          --transform-object-keys true \
-          --unicode-escape-sequence false
+            --output "build/$jsfile" \
+            --compact true \
+            --control-flow-flattening true \
+            --control-flow-flattening-threshold 0.75 \
+            --dead-code-injection true \
+            --dead-code-injection-threshold 0.4 \
+            --debug-protection true \
+            --debug-protection-interval true \
+            --disable-console-output true \
+            --identifier-names-generator hexadecimal \
+            --log false \
+            --rename-globals true \
+            --string-array true \
+            --string-array-encoding rc4 \
+            --string-array-threshold 0.75 \
+            --string-array-rotate true \
+            --self-defending true \
+            --transform-object-keys true \
+            --unicode-escape-sequence false
           echo "Obfuscated: $jsfile"
         done
 
     - name: Copy non-JS files
       run: |
-        rsync -av --exclude='*.js' --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='docs' ./ build/
+        rsync -av --exclude='*.js' --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='docs' --exclude='build' ./ build/
         echo "File structure preserved and copied to build/"
 
     - name: Deploy to GitHub Pages (optional)
