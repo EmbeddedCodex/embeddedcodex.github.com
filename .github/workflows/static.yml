@@ -36,7 +36,7 @@ jobs:
             --dead-code-injection true \
             --dead-code-injection-threshold 0.4 \
             --debug-protection true \
-            --debug-protection-interval true \
+            --debug-protection-interval 2000 \
             --disable-console-output true \
             --identifier-names-generator hexadecimal \
             --log false \
