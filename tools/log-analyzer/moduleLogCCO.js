@@ -20,7 +20,7 @@ function analyzeModuleLogCCO(arrayBuffer) {
     // 开始解析数据
     let match;
     const regex = /\[(.*?) \| +(\d+)\| *([A-F0-9]+|Tx|Rx)\](.*)/g;
-    const allResults = []; // 用于存储所有分段的数据
+    allGroups.length = 0; // 将数组长度设置为0，从而清空数组
     let currentSegment = []; // 当前段落的数据
 
     while ((match = regex.exec(text)) !== null) {
@@ -28,9 +28,8 @@ function analyzeModuleLogCCO(arrayBuffer) {
 
         // 如果 dataType 是 "1000"，表示新的一段数据
         if (dataType === "1000") {
-            // 如果当前段落不为空，保存到 allResults 中
+            // 如果当前段落不为空，保存到 allGroups 中
             if (currentSegment.length > 0) {
-                allResults.push(currentSegment);
                 allGroups.push(currentSegment);
                 currentSegment = []; // 开始新的段落
             }
@@ -46,11 +45,10 @@ function analyzeModuleLogCCO(arrayBuffer) {
     }
     // 不要忘记保存最后一段数据
     if (currentSegment.length > 0) {
-        allResults.push(currentSegment);
         allGroups.push(currentSegment);
     }
 
-    console.log(allResults);
+    console.log(allGroups);
 
     // 更新
     renderGroupTabs();
@@ -352,8 +350,16 @@ function renderStats(data) {
 
     // 计算各种统计信息
     const millis = data.map(row => convertToUTC(row[0]).getTime());
-    const minTime = Math.min(...millis);
-    const maxTime = Math.max(...millis);
+    // const minTime = Math.min(...millis);
+    let minTime = Infinity;
+    for (const num of millis) {
+        if (num < minTime) minTime = num;
+    }
+    // const maxTime = Math.max(...millis);
+    let maxTime = Infinity;
+    for (const num of millis) {
+        if (num > maxTime) maxTime = num;
+    }
     const avgTime = millis.reduce((a, b) => a + b, 0) / millis.length;
 
     const types = [...new Set(data.map(row => row[2]))];
