@@ -21,25 +21,25 @@ jobs:
     - name: Install Terser
       run: npm install terser -g
 
-    - name: Create docs directory
-      run: mkdir -p docs
+    - name: Create build directory
+      run: mkdir -p build
 
     - name: Obfuscate JS files
       run: |
         find . -type f -name "*.js" ! -path "./.git/*" ! -path "./.github/*" ! -path "./node_modules/*" ! -path "./docs/*" | while read -r jsfile; do
-          mkdir -p "docs/$(dirname "$jsfile")"
-          terser "$jsfile" -o "docs/$jsfile"
+          mkdir -p "build/$(dirname "$jsfile")"
+          terser "$jsfile" -o "build/$jsfile"
           echo "Obfuscated: $jsfile"
         done
 
     - name: Copy non-JS files
       run: |
-        rsync -av --exclude='*.js' --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='docs' ./ docs/
-        echo "File structure preserved and copied to docs/"
+        rsync -av --exclude='*.js' --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='docs' ./ build/
+        echo "File structure preserved and copied to build/"
 
     - name: Deploy to GitHub Pages (optional)
       if: success()
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs
+        publish_dir: ./build
