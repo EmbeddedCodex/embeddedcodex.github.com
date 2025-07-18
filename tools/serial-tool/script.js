@@ -79,8 +79,8 @@ async function readSerialData() {
                         break;
                     }
                     if (value) {
-                        console.log('读取到串口数据:', value);
-                        // dataReceived(value);
+                        // console.log('读取到串口数据:', value);
+                        handleSerialChunk(value);
                     }
                 }
             } finally {
@@ -107,6 +107,48 @@ async function readSerialData() {
         }
     }
 }
+
+/**
+ * 串口数据缓冲区，用于存储接收到的分包数据
+ */
+let serialDataBuffer = [];
+
+/**
+ * 合并串口接收到的分包数据
+ * @param {Uint8Array} chunk 接收到的单个数据块
+ * @param {number} [timeout=20] 合并数据的超时时间(毫秒)
+ */
+function handleSerialChunk(chunk, timeout = 20) {
+    // 将新数据块添加到缓冲区
+    serialDataBuffer.push(chunk);
+
+    // 如果已经有定时器在运行，清除它
+    if (handleSerialChunk.timeoutId) {
+        clearTimeout(handleSerialChunk.timeoutId);
+    }
+
+    // 设置新的定时器，超时后合并数据并调用回调函数
+    handleSerialChunk.timeoutId = setTimeout(() => {
+        if (serialDataBuffer.length > 0) {
+            // 合并所有数据块
+            const totalLength = serialDataBuffer.reduce((sum, chunk) => sum + chunk.length, 0);
+            const mergedData = new Uint8Array(totalLength);
+            let offset = 0;
+            for (const chunk of serialDataBuffer) {
+                mergedData.set(chunk, offset);
+                offset += chunk.length;
+            }
+
+            // 调用完成回调函数
+            // completeCallback(mergedData);
+            console.log('合并后的数据:', mergedData);
+
+            // 清空缓冲区
+            serialDataBuffer = [];
+        }
+    }, timeout);
+}
+
 
 
 // 更新状态栏
