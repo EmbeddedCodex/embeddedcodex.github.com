@@ -33,6 +33,7 @@ async function openSerialPort() {
         updateStatus(`已连接@ ${baudRate}bps`);
         btn.textContent = '断开连接';
         btn.classList.add('btn-danger');
+        readSerialData();
     } catch (error) {
         console.error('打开串口时出错:', error);
         throw error;
@@ -58,6 +59,55 @@ async function closeSerialPort() {
         throw error;
     }
 }
+
+/**
+ * 读取串口数据
+ */
+async function readSerialData() {
+    if (!serialPort || !isSerialOpen) {
+        throw new Error('串口未连接或未打开');
+    }
+
+    while (isSerialOpen && serialPort.readable) {
+        try {
+            const reader = serialPort.readable.getReader()
+            try {
+                while (isSerialOpen) {
+                    const { value, done } = await reader.read()
+                    if (done) {
+                        console.log('串口读取完成');
+                        break;
+                    }
+                    if (value) {
+                        console.log('读取到串口数据:', value);
+                        // dataReceived(value);
+                    }
+                }
+            } finally {
+                // 确保资源被正确释放
+                try {
+                    await reader.cancel();
+                } catch (cancelError) {
+                    console.warn('取消读取时出错:', cancelError);
+                }
+                reader.releaseLock();
+            }
+        } catch (error) {
+            console.error('串口读取错误:', error);
+            throw error; // 重新抛出错误以便外部处理
+        } finally {
+            if (serialPort && isSerialOpen) {
+                try {
+                    await serialPort.close();
+                    isSerialOpen = false;
+                } catch (closeError) {
+                    console.error('关闭串口时出错:', closeError);
+                }
+            }
+        }
+    }
+}
+
 
 // 更新状态栏
 function updateStatus(message) {
@@ -102,67 +152,39 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // 连接串口按钮
+    // 连接串口按钮，主要功能是打开和关闭串口
     document.getElementById('connect-btn').addEventListener('click', function () {
-        // if (this.textContent === '断开连接') {
-        //     updateStatus(`已断开`);
-        //     this.textContent = '连接串口';
-        //     this.classList.remove('btn-danger');
-        //     serialPort.close();
-        //     return;
-        // }
-
-        console.log("连接串口按钮点击事件触发");
-
-        // updateStatus(`正在连接 @ ${baudRate}bps...`);
-
-        navigator.serial.requestPort().then((port) => {
+        if (isSerialOpen) {
             closeSerialPort()
-            serialPort = port;
-            // openSerialPort()
+                .then(() => {
+                    updateStatus(`已断开`);
+                })
+                .catch((error) => {
+                    console.error('断开串口时出错:', error);
+                });
+        } else {
+            console.log("连接串口按钮点击事件触发");
 
+            const baudRate = document.getElementById('baud-rate').value;
+            updateStatus(`正在连接 @ ${baudRate}bps...`);
 
-
-
-            // updateStatus(`已连接 ${serialPort} @ ${baudRate}bps`);
-            // this.textContent = '断开连接';
-            // this.classList.add('btn-danger');
-            // port.open({
-            //     baudRate: baudRate,
-            //     dataBits: dataBits,
-            //     parity: parity,
-            //     stopBits: stopBits,
-            // });
-            // port.addEventListener('read', (e) => {
-            //     console.log('读取数据:', e);
-            // });
-            // port.addEventListener('write', (e) => {
-            //     console.log('写入数据:', e);
-            // });
-            // let data = "dfsdfsdf"
-            // sendData(serialPort, data);
-            // port.write(data);
-        })
-            .catch((e) => {
-                // The user didn't select a port.
-                console.log("选择端口时出错:", e);
-            });
-
-
-        // // 模拟连接过程
-        // setTimeout(() => {
-        //     updateStatus(`已连接 ${port} @ ${baudRate}bps`);
-        //     this.textContent = '断开连接';
-        //     this.classList.add('btn-danger');
-
-        //     // 更改点击事件为断开连接
-        //     this.onclick = function () {
-        //         updateStatus(`已断开 ${port}`);
-        //         this.textContent = '连接串口';
-        //         this.classList.remove('btn-danger');
-        //         this.onclick = arguments.callee; // 恢复原来的函数
-        //     };
-        // }, 1000);
+            navigator.serial.requestPort().then((port) => {
+                closeSerialPort()
+                    .then(() => {
+                        serialPort = port;
+                        return openSerialPort();
+                    })
+                    .catch((error) => {
+                        console.error('准备打开串口时出错:', error);
+                        throw error;
+                    });
+            })
+                .catch((e) => {
+                    // 用户未选择端口
+                    console.log("选择端口时出错:", e);
+                    updateStatus('未选择串口');
+                });
+        }
     });
 
     // 组包按钮
