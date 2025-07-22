@@ -49,6 +49,7 @@ body {
 
 #serial-tools {
 	height: 100%;
+	display: none;
 }
 #nav-tabContent {
 	overflow: hidden;
