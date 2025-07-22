@@ -15,12 +15,16 @@ jobs:
         with:
           ref: hplc
 
-      - name: Set target repository information
+      - name: Configure Git
         run: |
-          echo "TARGET_REPO_URL=https://x-access-token:${{ secrets.TARGET_REPO_TOKEN }}@github.com/${{ secrets.TARGET_REPO_USERNAME }}/${{ secrets.TARGET_REPO_NAME }}.git" >> $GITHUB_ENV
-
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+      - name: Add target remote
+        run: |
+          git remote add target https://${{ secrets.TARGET_REPO_TOKEN }}@github.com/${{ secrets.TARGET_REPO_USERNAME }}/${{ secrets.TARGET_REPO_NAME }}.git
+          git remote -v
+          
       - name: Push to target repository
         run: |
-          git remote add target ${{ env.TARGET_REPO_URL }}
-          git remote -v
           git push target hplc:hplc --force
