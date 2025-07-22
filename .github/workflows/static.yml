@@ -15,9 +15,9 @@ jobs:
         with:
           ref: hplc
 
-      - name: Set target repository SSH URL
+      - name: Set target repository information
         run: |
-          echo "TARGET_REPO_URL=git@github.com:${{ secrets.TARGET_REPO_USERNAME }}/${{ secrets.TARGET_REPO_NAME }}.git" >> $GITHUB_ENV
+          echo "TARGET_REPO_URL=https://x-access-token:${{ secrets.TARGET_REPO_TOKEN }}@github.com/${{ secrets.TARGET_REPO_USERNAME }}/${{ secrets.TARGET_REPO_NAME }}.git" >> $GITHUB_ENV
 
       - name: Push to target repository
         run: |
