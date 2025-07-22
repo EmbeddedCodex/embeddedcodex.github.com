@@ -1,0 +1,32 @@
+name: Push to Target Repository via SSH
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  push_to_target_repo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v2
+        with:
+          ref: hplc
+
+      - name: Set target repository SSH URL
+        run: |
+          echo "TARGET_REPO_URL=git@github.com:${{ secrets.TARGET_REPO_USERNAME }}/${{ secrets.TARGET_REPO_NAME }}.git" >> $GITHUB_ENV
+
+      - name: Add SSH key to the known hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.TARGET_REPO_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Push to target repository
+        run: |
+          git remote add target ${{ env.TARGET_REPO_URL }}
+          git push target hplc:hplc --force
