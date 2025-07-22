@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电网协议解析工具</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>电网协议解析工具</h1>
+
+        <!-- 协议选择部分 -->
+        <div class="section data-section">
+            <div class="section-title">协议选择</div>
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-tab="protocol-3762">376.2</button>
+                    <button class="tab-button" data-tab="protocol-645">645</button>
+                    <button class="tab-button" data-tab="protocol-698">698</button>
+                </div>
+                <div id="protocol-3762" class="tab-content active">
+                    <label for="p3762-data">HEX格式</label>
+                    <textarea id="p3762-data" class="hex-textarea"
+                        placeholder="输入16进制数据，如 68 2E 00 60 01 00 00 00 00 00 20 01 00 00 00 00 02 16 01 02 02 E8 02 00 83 08 07 10 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16 E5 16"></textarea>
+                    <div class="row">
+                        <div class="col">
+                            <button id="parser-p3762-btn" class="btn-success">解析数据</button>
+                        </div>
+                        <div class="col">
+                            <button id="clear-p3762-btn">清空</button>
+                        </div>
+                        <div class="col">
+                            <button id="paste-p3762-btn">粘贴</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="protocol-645" class="tab-content">
+                    <label for="p645-data">HEX格式</label>
+                    <textarea id="p645-data" class="hex-textarea"
+                        placeholder="输入16进制数据，如 68 20 01 00 00 00 00 68 11 04 33 33 33 33 D2 16"></textarea>
+                    <div class="row">
+                        <div class="col">
+                            <button id="parser-p645-btn" class="btn-success">解析数据</button>
+                        </div>
+                        <div class="col">
+                            <button id="clear-p645-btn">清空</button>
+                        </div>
+                        <div class="col">
+                            <button id="paste-p645-btn">粘贴</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="protocol-698" class="tab-content">
+                    <label for="p698-data">HEX格式</label>
+                    <textarea id="p698-data" class="hex-textarea" class="hex-textarea"
+                        placeholder="输入16进制数据，如 68 18 00 43 26 01 30 01 00 00 00 00 A1 83 EE 05 01 02 20 00 02 01 00 6B AF 16"></textarea>
+                    <div class="row">
+                        <div class="col">
+                            <button id="parser-p698-btn" class="btn-success">解析数据</button>
+                        </div>
+                        <div class="col">
+                            <button id="clear-p698-btn">清空</button>
+                        </div>
+                        <div class="col">
+                            <button id="paste-p698-btn">粘贴</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据解析结果 -->
+        <div class="section">
+            <div class="section-title">数据解析结果</div>
+            <div id="parse-result">
+                <div class="data-item">
+                    <div class="data-item-header">帧头</div>
+                    <div>68 - 起始符</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-header">地址域</div>
+                    <div>11 11 11 11 11 11 - 表号: 111111111111</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-header">控制码</div>
+                    <div>91 - 读数据应答</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-header">数据域长度</div>
+                    <div>08 - 8字节</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-header">数据域</div>
+                    <div>33 33 33 33 33 33 33 33 - 数据标识: 9010F000, 值: 1234.56 kWh</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-header">校验和</div>
+                    <div>XX - 校验正确</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-header">帧尾</div>
+                    <div>16 - 结束符</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态栏 -->
+        <div class="status-bar" id="status-bar">
+            就绪
+        </div>
+    </div>
+
+    <script>
+        // 这里将实现所有功能逻辑
+        document.addEventListener('DOMContentLoaded', function () {
+            // 标签切换功能
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+
+                    button.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // 解析按钮
+            document.getElementById('parser-p3762-btn').addEventListener('click', function () {
+                const data = document.getElementById('receive-data').value.trim();
+                const protocol = document.getElementById('protocol-select').value;
+
+                if (!data) {
+                    updateStatus('没有可解析的数据');
+                    return;
+                }
+
+                updateStatus(`正在解析 ${protocol} 数据...`);
+
+                // 模拟解析过程
+                setTimeout(() => {
+                    updateStatus(`已解析 ${protocol} 数据`);
+                    // 实际应用中这里会调用解析函数并显示结果
+                }, 300);
+            });
+
+            // 清空按钮
+            document.getElementById('clear-p3762-btn').addEventListener('click', function () {
+                document.getElementById('p3762-data').value = '';
+            });
+
+            document.getElementById('clear-p645-btn').addEventListener('click', function () {
+                document.getElementById('p645-data').value = '';
+            });
+
+            document.getElementById('clear-p698-btn').addEventListener('click', function () {
+                document.getElementById('p698-data').value = '';
+            });
+            document.getElementById('clear-p698-btn').addEventListener('click',  (e) => {
+                document.getElementById('p698-data').value = '';
+                console.log(e.target); // 同上
+            });
+
+            // 粘贴按钮
+            async function pasteToInput(inputId) {
+                const inputElement = document.getElementById(inputId);
+
+                try {
+                    const text = await navigator.clipboard.readText();
+                    inputElement.value = text;
+                } catch (error) {
+                    console.error(`无法读取剪贴板内容到 ${inputId}:`, error);
+                    inputElement.value = '无法粘贴内容';
+                }
+            }
+
+            document.getElementById('paste-p3762-btn').addEventListener('click', () => pasteToInput('p3762-data'));
+            document.getElementById('paste-p645-btn').addEventListener('click', () => pasteToInput('p645-data'));
+            document.getElementById('paste-p698-btn').addEventListener('click', () => pasteToInput('p698-data'));
+
+
+            // 更新状态栏
+            function updateStatus(message) {
+                document.getElementById('status-bar').textContent = message;
+            }
+
+            // 以下是模拟协议组包和解析的函数
+            function build645Frame(address, frameType, dataId, dataValue) {
+                // 简化的DL/T645组包逻辑
+                let frame = '68 ';
+
+                // 地址域 (6字节)
+                const addr = address.padStart(12, '0'); // 12位表号
+                for (let i = 0; i < 6; i++) {
+                    frame += addr.substr(i * 2, 2) + ' ';
+                }
+
+                frame += '68 ';
+
+                // 控制码
+                if (frameType === 'read') {
+                    frame += '11 ';
+                } else if (frameType === 'write') {
+                    frame += '14 ';
+                } else if (frameType === 'broadcast') {
+                    frame += '08 ';
+                }
+
+                // 数据长度 (根据数据标识)
+                frame += '04 '; // 假设固定4字节
+
+                // 数据标识 (如9010F000 -> 90 10 F0 00)
+                if (dataId && dataId.length >= 8) {
+                    for (let i = 0; i < 4; i++) {
+                        frame += dataId.substr(i * 2, 2) + ' ';
+                    }
+                } else {
+                    frame += '33 33 33 33 '; // 默认数据
+                }
+
+                // 校验和 (简化为固定值)
+                frame += 'XX ';
+
+                // 结束符
+                frame += '16';
+
+                return frame;
+            }
+
+            function build698Frame(address, frameType, dataId, dataValue) {
+                // 简化的DL/T698组包逻辑
+                let frame = '68 ';
+
+                // 长度 (暂时留空)
+                frame += 'XX XX XX XX ';
+
+                // 控制域
+                frame += 'C0 ';
+
+                // 地址域
+                frame += '01 '; // 地址类型
+                frame += '04 '; // 地址长度
+                frame += address.substr(0, 8).match(/.{2}/g).join(' ') + ' ';
+
+                // 帧序列
+                frame += '00 ';
+
+                // 服务标识
+                if (frameType === 'read') {
+                    frame += '01 ';
+                } else if (frameType === 'write') {
+                    frame += '04 ';
+                }
+
+                // 数据
+                if (dataId) {
+                    frame += dataId.match(/.{2}/g).join(' ') + ' ';
+                }
+
+                if (dataValue) {
+                    frame += dataValue.match(/.{2}/g).join(' ') + ' ';
+                }
+
+                // 结束符
+                frame += '16';
+
+                return frame;
+            }
+
+            function build3762Frame(address, frameType, dataId, dataValue) {
+                // 简化的DL/T376组包逻辑
+                let frame = '68 ';
+
+                // 地址域
+                frame += address.substr(0, 12).match(/.{2}/g).join(' ') + ' ';
+                frame += '68 ';
+
+                // 控制码
+                if (frameType === 'read') {
+                    frame += '01 ';
+                } else if (frameType === 'write') {
+                    frame += '04 ';
+                }
+
+                // 数据长度
+                frame += 'XX ';
+
+                // 数据标识
+                if (dataId) {
+                    frame += dataId.match(/.{2}/g).join(' ') + ' ';
+                }
+
+                // 数据值
+                if (dataValue) {
+                    frame += dataValue.match(/.{2}/g).join(' ') + ' ';
+                }
+
+                // 校验和
+                frame += 'XX ';
+
+                // 结束符
+                frame += '16';
+
+                return frame;
+            }
+        });
+    </script>
+
+    <script src="../../assets/js/utils/parser.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

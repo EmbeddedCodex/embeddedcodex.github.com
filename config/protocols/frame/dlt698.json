@@ -1,0 +1,99 @@
+{
+    "protocol": "DLT698.45",
+    "description": "电能信息采集与管理系统 第4-5部分：面向对象的互操作性数据交换协议",
+    "byteOrder": "bigEndian",
+    "fields": [
+        {
+            "name": "startCharacter",
+            "description": "起始字符",
+            "type": "fixed",
+            "value": "0xFE",
+            "size": 1
+        },
+        {
+            "name": "lengthField",
+            "description": "长度域",
+            "type": "bytes",
+            "size": 2,
+            "format": "integer"
+        },
+        {
+            "name": "controlField",
+            "description": "控制域",
+            "type": "bits",
+            "size": 1,
+            "bitFields": [
+                {
+                    "name": "direction",
+                    "description": "传输方向",
+                    "bits": 1,
+                    "position": 7
+                },
+                {
+                    "name": "prm",
+                    "description": "启动标志位",
+                    "bits": 1,
+                    "position": 6
+                },
+                {
+                    "name": "functionCode",
+                    "description": "功能码",
+                    "bits": 6,
+                    "position": 0
+                }
+            ]
+        },
+        {
+            "name": "addressField",
+            "description": "地址域",
+            "type": "bytes",
+            "size": 7,
+            "format": "bcd"
+        },
+        {
+            "name": "frameSequence",
+            "description": "帧序号",
+            "type": "bytes",
+            "size": 1,
+            "format": "integer"
+        },
+        {
+            "name": "apdu",
+            "description": "应用协议数据单元",
+            "type": "bytes",
+            "size": "dynamic",
+            "determinedBy": "lengthField",
+            "subFields": [
+                {
+                    "name": "apci",
+                    "description": "应用层控制信息",
+                    "type": "bytes",
+                    "size": 4
+                },
+                {
+                    "name": "asdu",
+                    "description": "应用服务数据单元",
+                    "type": "bytes",
+                    "size": "dynamic"
+                }
+            ]
+        },
+        {
+            "name": "checkCode",
+            "description": "校验码",
+            "type": "checksum",
+            "algorithm": "crc16",
+            "range": [
+                "startCharacter",
+                "apdu"
+            ]
+        },
+        {
+            "name": "endCharacter",
+            "description": "结束字符",
+            "type": "fixed",
+            "value": "0x16",
+            "size": 1
+        }
+    ]
+}

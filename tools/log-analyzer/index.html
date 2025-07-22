@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电网协议日志工具</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>电网协议日志数据工具</h1>
+
+        <!-- 日志分析工具 -->
+        <div class="section log-section">
+            <div class="section-title">日志分析工具</div>
+            <div class="row">
+                <div class="col">
+                    <label for="log-file">选择日志文件</label>
+                    <input type="file" id="log-file" accept=".txt,.bin">
+                </div>
+                <div class="col">
+                    <label for="log-type">日志类型</label>
+                    <select id="log-type">
+                        <option value="module-log-cco">集中器模块日志 (CCO)</option>
+                        <option value="module-log-sta">智能表模块日志 (STA)</option>
+                        <option value="machine-log">机台日志</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label>&nbsp;</label>
+                    <button id="analyze-log-btn" class="btn-success">解析日志</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label>文件类型</label>
+                    <input type="text" id="file-type" readonly placeholder="文件类型">
+                </div>
+                <div class="col">
+                    <label>文件大小</label>
+                    <input type="text" id="file-size" readonly placeholder="文件大小">
+                </div>
+            </div>
+        </div>
+
+        <div class="section data-section" id="dataSection">
+            <div class="group-tabs" id="groupTabs"></div>
+
+            <div class="dashboard">
+                <div class="card">
+                    <h3>类型分布</h3>
+                    <div class="chart-container">
+                        <canvas id="typeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>时间分布</h3>
+                    <div class="chart-container">
+                        <canvas id="timeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>数据统计</h3>
+                    <div class="stats-grid" id="statsGrid"></div>
+                </div>
+
+                <div class="card">
+                    <h3>原始数据抽样 (前50条)</h3>
+                    <div style="height: 300px; overflow: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8f8f8;">
+                                    <th style="padding: 10px; border-bottom: 1px solid #ddd;">RTC时间</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #ddd;">毫秒数</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #ddd;">数据类型</th>
+                                    <th style="padding: 10px; border-bottom: 1px solid #ddd;">原始数据</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sampleData"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="search-controls">
+                <input type="text" id="searchInput" placeholder="搜索...（1000,Rx,Tx...）">
+                <select id="filterColumn">
+                    <option value="all">所有列</option>
+                    <option value="0">时间</option>
+                    <option value="1">毫秒数</option>
+                    <option value="2">数据类型</option>
+                    <option value="3">原始数据</option>
+                </select>
+                <button id="searchBtn">搜索</button>
+            </div>
+
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>RTC时间</th>
+                            <th>毫秒数</th>
+                            <th>数据类型</th>
+                            <th>原始数据</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="pagination"></div>
+        </div>
+
+        <div class="section protocol-section" id="protocolSection">
+            <div class="section-title">数据解析结果</div>
+            <div id="parse-result">
+                <div class="data-item">
+                    <div class="data-item-header">帧头</div>
+                    <div>68 - 起始符</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-header">地址域</div>
+                    <div>11 11 11 11 11 11 - 表号: 111111111111</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-item-header">控制码</div>
+                    <div>91 - 读数据应答</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态栏 -->
+        <div class="status-bar" id="status-bar">
+            就绪
+        </div>
+    </div>
+
+    <script src="chart.js"></script>
+    <script type="module" src="script.js"></script>
+
+</body>
+
+</html>

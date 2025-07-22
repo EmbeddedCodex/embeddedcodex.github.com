@@ -1,0 +1,150 @@
+{
+    "log_definitions": {
+        "0x1000": {
+            "name": "上电基本信息",
+            "length": 23,
+            "fields": [
+                {
+                    "name": "MCU外部版本",
+                    "type": "BIN",
+                    "size": 2,
+                    "endian": "big",
+                    "offset": 2
+                },
+                {
+                    "name": "MCU内部版本",
+                    "type": "BIN",
+                    "size": 2,
+                    "endian": "big",
+                    "offset": 4
+                },
+                {
+                    "name": "DSP版本",
+                    "type": "BIN",
+                    "size": 2,
+                    "endian": "big",
+                    "offset": 9
+                },
+                {
+                    "name": "Bootloader版本",
+                    "type": "BIN",
+                    "size": 2,
+                    "endian": "big",
+                    "offset": 12
+                },
+                {
+                    "name": "HGID",
+                    "type": "BIN",
+                    "size": 2,
+                    "endian": "big",
+                    "offset": 15
+                },
+                {
+                    "name": "重启模式",
+                    "type": "BIN",
+                    "size": 1,
+                    "endian": "big",
+                    "offset": 18
+                },
+                {
+                    "name": "特征码",
+                    "type": "BIN",
+                    "size": 4,
+                    "endian": "big",
+                    "offset": 19
+                }
+            ]
+        },
+        "0x1001": {
+            "name": "系统启动日志",
+            "variants": [
+                {
+                    "header": "0x01",
+                    "length": 8,
+                    "fields": [
+                        {
+                            "name": "启动原因",
+                            "type": "uint8",
+                            "offset": 1
+                        },
+                        {
+                            "name": "固件版本",
+                            "type": "string",
+                            "offset": 2,
+                            "length": 4
+                        },
+                        {
+                            "name": "启动时间",
+                            "type": "uint32",
+                            "offset": 6
+                        }
+                    ]
+                },
+                {
+                    "header": "0x02",
+                    "length": 12,
+                    "fields": [
+                        {
+                            "name": "启动原因",
+                            "type": "uint8",
+                            "offset": 1
+                        },
+                        {
+                            "name": "固件版本",
+                            "type": "string",
+                            "offset": 2,
+                            "length": 4
+                        },
+                        {
+                            "name": "启动时间",
+                            "type": "uint32",
+                            "offset": 6
+                        },
+                        {
+                            "name": "硬件版本",
+                            "type": "uint16",
+                            "offset": 10
+                        }
+                    ]
+                }
+            ]
+        },
+        "0x2001": {
+            "name": "传感器数据",
+            "length": 6,
+            "fields": [
+                {
+                    "name": "温度",
+                    "type": "int16",
+                    "offset": 0,
+                    "scale": 0.1
+                },
+                {
+                    "name": "湿度",
+                    "type": "uint16",
+                    "offset": 2,
+                    "scale": 0.1
+                },
+                {
+                    "name": "状态",
+                    "type": "bitfield",
+                    "offset": 4,
+                    "bits": [
+                        {
+                            "name": "电池低",
+                            "bit": 0
+                        },
+                        {
+                            "name": "传感器故障",
+                            "bit": 1
+                        },
+                        {
+                            "name": "校准标志",
+                            "bit": 2
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

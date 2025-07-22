@@ -1,0 +1,74 @@
+name: Obfuscate and Deploy
+
+on:
+  push:
+    branches: [ hplc ]
+  workflow_dispatch:
+
+jobs:
+  obfuscate-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check if the repository is the correct one
+      run: |
+        # 获取当前仓库的完整名称
+        current_repo="${{ github.repository }}"
+        # 检查当前仓库是否是特定的仓库
+        if [ "$current_repo" != "HPLCFlow/hplcflow.github.io" ]; then
+          echo "This workflow only runs for HPLCFlow/hplcflow.github.io"
+          exit 1  # 退出工作流
+        fi
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install javascript-obfuscator
+      run: npm install javascript-obfuscator -g
+
+    - name: Create build directory
+      run: mkdir -p build
+
+    - name: Obfuscate JS files
+      run: |
+        find . -type f -name "*.js" ! -path "./.git/*" ! -path "./.github/*" ! -path "./node_modules/*" ! -path "./docs/*" ! -path "./build/*" | while read -r jsfile; do
+          mkdir -p "build/$(dirname "$jsfile")"
+          javascript-obfuscator "$jsfile" \
+            --output "build/$jsfile" \
+            --compact true \
+            --control-flow-flattening true \
+            --control-flow-flattening-threshold 0.75 \
+            --dead-code-injection true \
+            --dead-code-injection-threshold 0.4 \
+            --debug-protection true \
+            --debug-protection-interval 2000 \
+            --disable-console-output true \
+            --identifier-names-generator hexadecimal \
+            --log false \
+            --rename-globals true \
+            --string-array true \
+            --string-array-encoding rc4 \
+            --string-array-threshold 0.75 \
+            --string-array-rotate true \
+            --self-defending true \
+            --transform-object-keys true \
+            --unicode-escape-sequence false
+          echo "Obfuscated: $jsfile"
+        done
+
+    - name: Copy non-JS files
+      run: |
+        rsync -av --exclude='*.js' --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='docs' --exclude='build' ./ build/
+        echo "File structure preserved and copied to build/"
+
+    - name: Deploy to GitHub Pages (optional)
+      if: success()
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build

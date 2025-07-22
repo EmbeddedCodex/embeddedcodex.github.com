@@ -1,0 +1,80 @@
+{
+    "protocol": "DLT645-2007",
+    "description": "DL/T645-2007多功能电能表通信协议",
+    "byteOrder": "bigEndian",
+    "fields": [
+        {
+            "name": "start",
+            "description": "起始符",
+            "type": "fixed",
+            "value": "0x68",
+            "size": 1
+        },
+        {
+            "name": "address",
+            "description": "表地址",
+            "type": "bytes",
+            "size": 6,
+            "format": "bcd"
+        },
+        {
+            "name": "startRepeat",
+            "description": "起始符重复",
+            "type": "fixed",
+            "value": "0x68",
+            "size": 1
+        },
+        {
+            "name": "controlCode",
+            "description": "控制码",
+            "type": "bits",
+            "size": 1,
+            "bitFields": [
+                {
+                    "name": "direction",
+                    "description": "传输方向",
+                    "bits": 1,
+                    "position": 7
+                },
+                {
+                    "name": "functionCode",
+                    "description": "功能码",
+                    "bits": 4,
+                    "position": 3
+                }
+            ]
+        },
+        {
+            "name": "dataLength",
+            "description": "数据域长度",
+            "type": "bytes",
+            "size": 1,
+            "format": "integer"
+        },
+        {
+            "name": "data",
+            "description": "数据域",
+            "type": "bytes",
+            "size": "dynamic",
+            "determinedBy": "dataLength"
+        },
+        {
+            "name": "checksum",
+            "description": "校验和",
+            "type": "checksum",
+            "size": 1,
+            "algorithm": "sum8",
+            "range": [
+                "start",
+                "data"
+            ]
+        },
+        {
+            "name": "end",
+            "description": "结束符",
+            "type": "fixed",
+            "value": "0x16",
+            "size": 1
+        }
+    ]
+}

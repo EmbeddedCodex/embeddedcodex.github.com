@@ -1,0 +1,100 @@
+{
+    "protocol": "DLT376.2-2017",
+    "description": "电力用户用电信息采集系统通信协议 第2部分：集中器本地通信模块接口协议",
+    "byteOrder": "bigEndian",
+    "fields": [
+        {
+            "name": "frameHeader",
+            "description": "帧起始符",
+            "type": "fixed",
+            "value": "0x68",
+            "size": 1
+        },
+        {
+            "name": "frameLength",
+            "description": "帧长度",
+            "type": "bytes",
+            "size": 2,
+            "format": "integer"
+        },
+        {
+            "name": "frameHeaderRepeat",
+            "description": "帧起始符重复",
+            "type": "fixed",
+            "value": "0x68",
+            "size": 1
+        },
+        {
+            "name": "controlCode",
+            "description": "控制码",
+            "type": "bits",
+            "size": 1,
+            "bitFields": [
+                {
+                    "name": "direction",
+                    "description": "传输方向",
+                    "bits": 1,
+                    "position": 7
+                },
+                {
+                    "name": "primaryFunction",
+                    "description": "主功能码",
+                    "bits": 3,
+                    "position": 4
+                },
+                {
+                    "name": "secondaryFunction",
+                    "description": "次功能码",
+                    "bits": 4,
+                    "position": 0
+                }
+            ]
+        },
+        {
+            "name": "meterAddress",
+            "description": "电表地址",
+            "type": "bytes",
+            "size": 7,
+            "format": "bcd"
+        },
+        {
+            "name": "sequenceNumber",
+            "description": "序列号",
+            "type": "bytes",
+            "size": 2,
+            "format": "integer"
+        },
+        {
+            "name": "dataLength",
+            "description": "数据域长度",
+            "type": "dynamic",
+            "size": 1,
+            "reference": "dataField",
+            "operation": "length"
+        },
+        {
+            "name": "dataField",
+            "description": "数据域",
+            "type": "bytes",
+            "size": "dynamic",
+            "determinedBy": "dataLength"
+        },
+        {
+            "name": "checksum",
+            "description": "校验和",
+            "type": "checksum",
+            "algorithm": "xor",
+            "range": [
+                "frameHeader",
+                "dataField"
+            ]
+        },
+        {
+            "name": "frameEnd",
+            "description": "帧结束符",
+            "type": "fixed",
+            "value": "0x16",
+            "size": 1
+        }
+    ]
+}
