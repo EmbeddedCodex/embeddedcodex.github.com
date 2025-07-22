@@ -10,6 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Check if the repository is the correct one
+      run: |
+        # 获取当前仓库的完整名称
+        current_repo="${{ github.repository }}"
+        # 检查当前仓库是否是特定的仓库
+        if [ "$current_repo" != "HPLCFlow/hplcflow.github.io" ]; then
+          echo "This workflow only runs for HPLCFlow/hplcflow.github.io"
+          exit 1  # 退出工作流
+        fi
+
     - name: Checkout repository
       uses: actions/checkout@v4
 
