@@ -22,7 +22,7 @@ jobs:
           
       - name: Add target remote
         run: |
-          git remote add target https://${{ secrets.TARGET_REPO_TOKEN }}@github.com/${{ secrets.TARGET_REPO_USERNAME }}/${{ secrets.TARGET_REPO_USERNAME }}.github.io.git
+          git remote add target https://${{ secrets.TARGET_REPO_TOKEN }}@github.com/HPLCFlow/hplcflow.github.io.git
           git remote -v
           
       - name: Push to target repository
