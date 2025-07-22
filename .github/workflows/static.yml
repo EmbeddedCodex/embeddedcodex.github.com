@@ -22,4 +22,5 @@ jobs:
       - name: Push to target repository
         run: |
           git remote add target ${{ env.TARGET_REPO_URL }}
+          git remote -v
           git push target hplc:hplc --force
